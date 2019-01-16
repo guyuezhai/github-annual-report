@@ -7,6 +7,7 @@ import Modal from 'antd/lib/modal';
 import Button from 'antd/lib/button';
 import Alert from 'antd/lib/alert';
 import { OWNER, REPO, AVATAR, USERNAME } from '../utils/constant';
+import bg from '../images/bg.png';
 
 class Slide extends Component {
   constructor(props) {
@@ -53,21 +54,20 @@ class Slide extends Component {
       autoHeight: true,
       direction: 'vertical',
       mousewheel: true,
-      slidesPerView: 1,
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
+      slidesPerView: 1
     };
+    const sectionStyle = {
+      backgroundImage: `url(${bg})`
+    }
     return (
       <div className="Slide">
         <Swiper {...params}>
-          <section>
+          <section style={ sectionStyle }>
             <p className="mb5">Hello, {localStorage.getItem(USERNAME)}</p>
             <img className="mb5 avatar" alt="图片未获取" src={localStorage.getItem(AVATAR)}/>
             <p>进入2018年</p>
           </section>
-          <section>
+          <section style={ sectionStyle }>
             <p>这一年里</p>
             <p>你一共</p>
             {this.props.collectInfo.languageNums !== 0 ? (
@@ -100,7 +100,7 @@ class Slide extends Component {
           </section>
 
           {this.props.collectInfo.specialDay.date !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p className="stress">
                 {this.props.collectInfo.specialDay.date.getMonth() + 1}月{this.props.collectInfo.specialDay.date.getDate()}日
               </p>
@@ -117,13 +117,13 @@ class Slide extends Component {
               </p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>你没有什么特别的一天</p>
               <p>你的每天都一样精彩</p>
             </section>
           )}
           {this.props.collectInfo.latestDay.date !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p className="stress">
                 {this.props.collectInfo.latestDay.date.getMonth() + 1}月{this.props.collectInfo.latestDay.date.getDate()}日
               </p>
@@ -141,14 +141,14 @@ class Slide extends Component {
               </p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>每一天</p>
               <p>你休息得都很好</p>
               <p>早早地完成了代码提交工作</p>
             </section>
           )}
           {this.props.collectInfo.mostDay.repo !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p>这一年</p>
               <p>
                 你有
@@ -163,7 +163,7 @@ class Slide extends Component {
               <p>你对它最专一</p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>这一年</p>
               <p>你没有很心仪的项目</p>
               <p>大概在项目管理上</p>
@@ -171,7 +171,7 @@ class Slide extends Component {
             </section>
           )}
           {this.props.collectInfo.likePeriod.name !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p>
                 你喜欢在<span className="stress">{this.props.collectInfo.likePeriod.name}</span>提交代码
               </p>
@@ -187,14 +187,14 @@ class Slide extends Component {
               </p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>你没有固定的提交代码时间段</p>
               <p>无论是繁忙的工作日</p>
               <p>还安静的是周末</p>
             </section>
           )}
 
-          <section>
+          <section style={ sectionStyle }>
             <p>作为社区的一员</p>
             <p>一年里</p>
             {this.props.collectInfo.issueNums !== 0 ? (
@@ -214,7 +214,7 @@ class Slide extends Component {
           </section>
 
           {this.props.collectInfo.forget.language !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p>还记得</p>
               <p>世界上最好的语言</p>
               <p>
@@ -224,14 +224,14 @@ class Slide extends Component {
               <p>但最近似乎把它遗忘了</p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>世界上最好的语言</p>
               <p>引起了无数硝烟</p>
               <p>但你岿然不动</p>
             </section>
           )}
           {this.props.collectInfo.mostLanguage.name !== '' ? (
-            <section>
+            <section style={ sectionStyle }>
               <p>
                 你的年度语言是<span className="stress">{this.props.collectInfo.mostLanguage.name}</span>
               </p>
@@ -246,14 +246,14 @@ class Slide extends Component {
               </p>
             </section>
           ) : (
-            <section>
+            <section style={ sectionStyle }>
               <p>本年度</p>
               <p>所有的编程语言</p>
               <p>在你面前</p>
               <p>都已自惭形秽</p>
             </section>
           )}
-          <section>
+          <section style={ sectionStyle }>
             {this.state.failed ? (
               <Alert message="获取你的GitHub年终总结失败，请刷新重试" type="error" closable afterClose={this.onClose} />
             ) : null}

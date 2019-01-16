@@ -22,7 +22,7 @@ class App extends Component {
       viewOtherNot: false,
     };
     this.octokit = new Octokit();
-    this.info = {};
+    this.repos = {};
     this.collectInfo = {};
     this.y2018 = new Date('2018-01-01');
     this.y2019 = new Date('2019-01-01');
@@ -183,7 +183,7 @@ class App extends Component {
       name: '',
       count: 0,
     };
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       repo.commitTime.forEach(time => {
         const key = new Date(time).toDateString();
         if (!(key in hashObject)) {
@@ -210,7 +210,7 @@ class App extends Component {
     // 计算每种语言最后一次提交时间的hash
     this.collectInfo.languageLastCommit = {};
     const hashObject = this.collectInfo.languageLastCommit;
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       const key = repo.language;
       if (key) {
         // 最晚提交时间
@@ -245,7 +245,7 @@ class App extends Component {
       dawnNums: 0,
     };
     const period = this.collectInfo.period;
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       period.morningNums += repo.morningNums;
       period.afternoonNums += repo.afternoonNums;
       period.eveningNums += repo.eveningNums;
@@ -279,14 +279,14 @@ class App extends Component {
       count: 0,
       repo: '',
     };
-    if (this.info.repos.length === 1) {
-      const repo = this.info.repos[0];
+    if (this.repos.length === 1) {
+      const repo = this.repos[0];
       this.collectInfo.mostDay = {
         count: repo.sumDays,
         repo: repo.repo,
       };
-    } else if (this.info.repos.length > 1) {
-      const repo = this.info.repos.reduce((pre, cur) => (pre.sumDays > cur.sumDays ? pre : cur));
+    } else if (this.repos.length > 1) {
+      const repo = this.repos.reduce((pre, cur) => (pre.sumDays > cur.sumDays ? pre : cur));
       this.collectInfo.mostDay = {
         count: repo.sumDays,
         repo: repo.repo,
@@ -300,14 +300,14 @@ class App extends Component {
       date: '',
       repo: '',
     };
-    if (this.info.repos.length === 1) {
-      const repo = this.info.repos[0];
+    if (this.repos.length === 1) {
+      const repo = this.repos[0];
       this.collectInfo.latestDay = {
         date: repo.latestTime,
         repo: repo.repo,
       };
-    } else if (this.info.repos.length > 1) {
-      const repo = this.info.repos.reduce((pre, cur) => {
+    } else if (this.repos.length > 1) {
+      const repo = this.repos.reduce((pre, cur) => {
         if (cur.latestTime === '') {
           return pre;
         }
@@ -331,15 +331,15 @@ class App extends Component {
       repo: '',
       count: 0,
     };
-    if (this.info.repos.length === 1) {
-      const repo = this.info.repos[0];
+    if (this.repos.length === 1) {
+      const repo = this.repos[0];
       this.collectInfo.specialDay = {
         date: repo.commitMostDay.date,
         repo: repo.repo,
         count: repo.commitMostDay.count,
       };
-    } else if (this.info.repos.length > 1) {
-      const repo = this.info.repos.reduce((pre, cur) => (pre.commitMostDay.count > cur.commitMostDay.count ? pre : cur));
+    } else if (this.repos.length > 1) {
+      const repo = this.repos.reduce((pre, cur) => (pre.commitMostDay.count > cur.commitMostDay.count ? pre : cur));
       this.collectInfo.specialDay = {
         date: repo.commitMostDay.date,
         repo: repo.repo,
@@ -351,10 +351,10 @@ class App extends Component {
   // 分析提交总次数
   getCollectCommitNums = () => {
     this.collectInfo.commitNums = 0;
-    if (this.info.repos.length === 1) {
-      this.collectInfo.commitNums = this.info.repos[0].commitTime.length;
-    } else if (this.info.repos.length > 1) {
-      this.collectInfo.commitNums = this.info.repos.reduce((pre, cur) =>
+    if (this.repos.length === 1) {
+      this.collectInfo.commitNums = this.repos[0].commitTime.length;
+    } else if (this.repos.length > 1) {
+      this.collectInfo.commitNums = this.repos.reduce((pre, cur) =>
         typeof pre === 'number' ? pre + cur.commitTime.length : pre.commitTime.length + cur.commitTime.length
       );
     }
@@ -362,7 +362,7 @@ class App extends Component {
 
   // 分析对多少仓库提交过代码
   getCollectRepoNums = () => {
-    this.collectInfo.repoNums = this.info.repos.length;
+    this.collectInfo.repoNums = this.repos.length;
   };
 
   // 分析编程语言数量，用的最多的年度编程语言
@@ -375,7 +375,7 @@ class App extends Component {
     // 语言各有多少仓库
     this.collectInfo.language = {};
     const hashObject = this.collectInfo.language;
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       if (repo.language) {
         const key = repo.language;
         if (key in hashObject) {
@@ -393,7 +393,7 @@ class App extends Component {
     this.collectInfo.languageNums = Object.keys(hashObject).length;
     // 计算总提交数
     this.collectInfo.mostLanguage.commitNums = 0;
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       if (repo.language === this.collectInfo.mostLanguage.name) {
         this.collectInfo.mostLanguage.commitNums += repo.commitTime.length;
       }
@@ -409,7 +409,7 @@ class App extends Component {
 
   // 分析每个仓库 上午，下午，晚上，凌晨的提交次数
   getSinglePeriodNums = () => {
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       repo.morningNums = 0;
       repo.afternoonNums = 0;
       repo.eveningNums = 0;
@@ -431,7 +431,7 @@ class App extends Component {
 
   // 分析每个仓库提交最多的天数 和 提交的总天数
   getSingleCommitDays = () => {
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       const hashObject = {};
       repo.commitMostDay = {
         date: '',
@@ -457,7 +457,7 @@ class App extends Component {
   getSingleLatestTime = () => {
     // 23:00 - 4:00 睡得较晚
     const late = [23, 0, 1, 2, 3];
-    this.info.repos.forEach(repo => {
+    this.repos.forEach(repo => {
       repo.latestTime = '';
       repo.commitTime.forEach(time => {
         // 在这几个时间段内
@@ -517,7 +517,7 @@ class App extends Component {
     promiseArr.push(this.fetchStars());
 
     // 分页，取出当前用户的满足条件的仓库
-    this.info.repos = [];
+    this.repos = [];
     let repos;
     let repoPage = 1;
     let repoOver = false;
@@ -632,7 +632,7 @@ class App extends Component {
     } while (commits.data.length === this.per_page && !commitOver);
     // 2018年存在提交记录则将该仓库加入
     if (currentRepo.commitTime.length > 0) {
-      this.info.repos.push(currentRepo);
+      this.repos.push(currentRepo);
     }
   };
 

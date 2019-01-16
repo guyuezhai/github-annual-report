@@ -39,37 +39,35 @@ OTHER = 'test2'
 
 ```js
 // fetchInfo
-this.info = {
-  repos: [
-    {
-      repo: 'test',
-      owner: 'Jim',
-      language: 'Java',
-      commitTime: [
-        '2018-03-05T01:29:00Z',
-        '2018-03-05T08:50:00Z',
-        '2018-03-05T10:50:00Z',
-        '2018-03-08T10:30:00Z',
-        '2018-03-09T23:30:00Z',
-        '2018-03-10T14:30:00Z'
-      ],
-      // analysisSingle
-      commitMostDay: {
-        date: '2018-03-05T01:29:00Z',
-        count: 3
-      },
-      latestTime: '2018-03-05T01:29:00Z', //可能为空
-      sumDays: 8,
-      morningNums: 3,
-      afternoonNums: 1,
-      eveningNums: 2,
-      dawnNums: 2,
+this.repos = [
+  {
+    repo: 'test',
+    owner: 'Jim',
+    language: 'Java',
+    commitTime: [
+      '2018-03-05T01:29:00Z',
+      '2018-03-05T08:50:00Z',
+      '2018-03-05T10:50:00Z',
+      '2018-03-08T10:30:00Z',
+      '2018-03-09T23:30:00Z',
+      '2018-03-10T14:30:00Z'
+    ],
+    // analysisSingle
+    commitMostDay: {
+      date: '2018-03-05T01:29:00Z',
+      count: 3
     },
+    latestTime: '2018-03-05T01:29:00Z', //可能为空
+    sumDays: 8,
+    morningNums: 3,
+    afternoonNums: 1,
+    eveningNums: 2,
+    dawnNums: 2,
+  },
 
-    ...
+  ...
 
-  ]
-}
+]
 ```
 
 ```js
@@ -134,3 +132,7 @@ this.collectInfo = {
   }
 }
 ```
+
+## 欢迎关注
+
+![](https://github.com/guanpengchn/Figure/raw/master/wechat.jpg)

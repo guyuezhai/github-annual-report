@@ -19,7 +19,6 @@ export const queryParse = (search = window.location.search) => {
       /* istanbul ignore else */
       if (key) query[decodeURIComponent(key)] = decodeURIComponent(value)
     })
-
   return query
 }
 

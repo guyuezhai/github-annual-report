@@ -1,6 +1,6 @@
 ## 简介
 
-GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年报，所有代码均部署在 GitHub Page 上，无安全风险。
+GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年度代码报告，所有代码均部署在 GitHub Page 上，无安全风险。
 
 ## 主要依赖
 
@@ -30,12 +30,16 @@ $ yarn test // 测试
 ## 数据结构
 
 ```js
+// localStorage
+ACCESS_TOKEN = '452df45345dsfg46'
+USERNAME = 'test'
+AVATAR = 'http://test.com/test.jpg'
+OTHER = 'test2'
+```
+
+```js
 // fetchInfo
 this.info = {
-  username: 'Jim',
-  avatar: 'http://test.com/test.jpg',
-  issueNums: 234, // 包括创建，指派，提及和订阅的问题
-  starNums: 56, // 创建star的数量
   repos: [
     {
       repo: 'test',
@@ -71,6 +75,14 @@ this.info = {
 ```js
 // analysisCollect
 this.collectInfo = {
+  likeWeekType: {
+    name: '周末',
+    count: 52
+  },
+  weekendNums: 52,
+  weekdayNums: 31,
+  issueNums: 234, // 包括创建，指派，提及和订阅的问题
+  starNums: 56, // 创建star的数量
   forget: {
     language: 'PHP',
     date: '2018-01-01T11:22:00Z'

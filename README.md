@@ -8,6 +8,7 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 - [ant-design](https://github.com/ant-design/ant-design)
 - [rest.js](https://github.com/octokit/rest.js)
 - [axios](https://github.com/axios/axios)
+- [react-id-swiper](https://github.com/kidjp85/react-id-swiper)
 
 ## 快速开始
 

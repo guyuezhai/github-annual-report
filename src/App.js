@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
 import { CLIENT_ID, CLIENT_SECRET, ACCESS_TOKEN, PROXY, STATUS } from './utils/constant';
 import { queryParse, axiosJSON } from './utils/helper';
 import Octokit from '@octokit/rest';
-import Alert from 'antd/lib/alert'; // 加载 JS
+import Alert from 'antd/lib/alert';
+import Swiper from 'react-id-swiper';
+import Button from 'antd/lib/button';
 
 class App extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       failed: false,
     };
@@ -476,18 +479,37 @@ class App extends Component {
   };
 
   render() {
+    const params = {
+      height: document.body.clientHeight,
+      autoHeight: true,
+      direction: 'vertical',
+      mousewheel: true,
+      slidesPerView: 1,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+    };
+    const lightyellow = {
+      backgroundColor: 'lightyellow',
+    };
+    const lightgreen = {
+      backgroundColor: 'lightgreen',
+    };
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          {this.state.failed ? (
-            <Alert message="获取你的GitHub年终总结失败，请刷新重试" type="error" closable afterClose={this.onClose} />
-          ) : null}
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <button onClick={this.login}>login</button>
-        </header>
+        <Swiper  {...params}>
+          <div style={lightgreen}>
+            Slide 1
+            {this.state.failed ? (
+              <Alert message="获取你的GitHub年终总结失败，请刷新重试" type="error" closable afterClose={this.onClose} />
+            ) : null}
+            <Button type="primary" onClick={this.login}>login</Button>
+          </div>
+          <div style={lightyellow}>Slide 2</div>
+          <div style={lightgreen}>Slide 3</div>
+          <div style={lightyellow}>Slide 4</div>
+        </Swiper>
       </div>
     );
   }

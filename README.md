@@ -1,6 +1,15 @@
 ## 简介
 
-GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年度代码报告，所有代码均部署在 GitHub Page 上，无安全风险。
+GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年度代码报告，所有代码均部署在 GitHub Page 上，无安全风险，欢迎来领取你的 [GitHub 2018年度代码报告](https://githubreport.github.io/)。
+
+## 说明
+
+- 由于项目是纯前端代码，所以数据存储设计在了GitHub Issue中，这是份儿公开的数据库
+- 对项目有其他问题请发起新的Issue，**不要在数据库Issue中评论或者@他人**
+- 存储数据后才可在其他软件中（如微信）分享链接
+- 存储数据后请去数据库Issue中点击**右下方（或下方）的Unsubscribe按钮**，以防邮件提醒
+- Issue中可以随时删除评论数据，否则其他人无法找到你的数据
+- 只统计公开仓库，不会存在数据安全问题
 
 ## 主要依赖
 
@@ -9,6 +18,8 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 - [rest.js](https://github.com/octokit/rest.js)
 - [axios](https://github.com/axios/axios)
 - [react-id-swiper](https://github.com/kidjp85/react-id-swiper)
+- [react-animations](https://github.com/FormidableLabs/react-animations)
+- [typed.js](https://github.com/mattboldt/typed.js)
 
 ## 快速开始
 
@@ -20,6 +31,7 @@ $ yarn
 $ yarn start // 启动服务
 $ yarn build // 打包
 $ yarn test // 测试
+$ yarn deploy // 部署
 ```
 
 ## 整体设计
@@ -71,8 +83,8 @@ this.repos = [
 ```
 
 ```js
-// analysisCollect
-this.collectInfo = {
+// analysisInfo
+this.info = {
   likeWeekType: {
     name: '周末',
     count: 52

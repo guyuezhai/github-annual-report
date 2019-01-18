@@ -2,11 +2,21 @@
 @import '~react-id-swiper/src/styles/css/swiper.css';
 @import '~antd/dist/antd.css';
 
-.swiper-slide, .firstPage, .header {
+.swiper-slide, .firstPage {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: absolute;
+  height: 200px;
+  bottom: 0;
 }
 
 .login {
@@ -33,4 +43,9 @@
 .failed {
   position: absolute;
   top:0;
+}
+
+.spin {
+  position: absolute;
+  bottom: 8%;
 }

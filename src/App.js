@@ -1,14 +1,30 @@
 import React, { Component } from 'react';
-// import logo from './logo.svg';
 import './App.css';
-import { CLIENT_ID, CLIENT_SECRET, ACCESS_TOKEN, USERNAME, AVATAR, PROXY, STATUS, OWNER, REPO, OTHER } from './utils/constant';
+import {
+  CLIENT_ID,
+  CLIENT_SECRET,
+  ACCESS_TOKEN,
+  USERNAME,
+  AVATAR,
+  PROXY,
+  STATUS,
+  OWNER,
+  REPO,
+  OTHER,
+  BG1,
+  BG2,
+  WECHAT,
+  MUSIC,
+} from './utils/constant';
 import { queryParse, axiosJSON } from './utils/helper';
 import Octokit from '@octokit/rest';
 import Alert from 'antd/lib/alert';
 import Button from 'antd/lib/button';
 import Spin from 'antd/lib/spin';
-import { ReactComponent as GitHub } from './icon/github.svg';
+import { ReactComponent as GitHub } from './icon/githubWhite.svg';
 import Slide from './components/Slide';
+import analysisSingle from './utils/analysisSingle';
+import analysisInfo from './utils/analysisInfo';
 
 class App extends Component {
   constructor(props) {
@@ -20,10 +36,12 @@ class App extends Component {
       firstPage: true,
       viewOther: false,
       viewOtherNot: false,
+      status: '正在读取数据...',
+      requestNums: 0,
     };
     this.octokit = new Octokit();
     this.repos = {};
-    this.collectInfo = {};
+    this.info = {};
     this.y2018 = new Date('2018-01-01');
     this.y2019 = new Date('2019-01-01');
     this.per_page = 100;
@@ -32,9 +50,11 @@ class App extends Component {
     this.run();
   }
 
+  // 权限和路由参数处理
   run = async () => {
     const token = localStorage.getItem(ACCESS_TOKEN);
     const query = queryParse();
+    this.fetchAssets();
     if (token) {
       // 存在username说明是自己或者别人想看
       if (query.username) {
@@ -43,11 +63,12 @@ class App extends Component {
         const isExisted = await this.fetchComments(query.username);
         // 如果GitHub上不存在数据
         if (!isExisted) {
+          this.setState({ status: '缓存数据不存在' });
           // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
           if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
             await this.calc();
-            // console.log(this.info);
-            console.log(this.collectInfo);
+            // console.log(this.repos);
+            console.log(this.info);
             this.setState({ loading: false, firstPage: false });
           }
           // 不一致则无法获取数据
@@ -58,6 +79,7 @@ class App extends Component {
         }
         // 如果存在数据
         else {
+          this.setState({ status: '缓存读取成功' });
           this.setState({ loading: false, firstPage: false });
         }
       }
@@ -117,12 +139,59 @@ class App extends Component {
     }
   };
 
+  // 获取用户信息和分析计算
+  calc = async () => {
+    // 远程获取Issue Star repo commit信息
+    await this.fetchInfo();
+    this.setState({ status: '正在分析每个仓库...' });
+    analysisSingle(this.repos);
+    this.setState({ status: '正在生成报告...' });
+    analysisInfo(this.info, this.repos);
+    this.setState({ status: '报告生成完毕！' });
+  };
+
+  fetchAssets = () => {
+    // 获取三张图片和一个音乐
+    this.fetchImage(BG1);
+    this.fetchImage(BG2);
+    this.fetchImage(WECHAT);
+    this.fetchAudio(MUSIC);
+  };
+
+  fetchImage = url => {
+    return new Promise(function(resolve, reject) {
+      var img = new Image();
+      img.src = url;
+      img.onload = function() {
+        resolve();
+      };
+      img.onerror = function() {
+        reject();
+      };
+    });
+  };
+
+  fetchAudio = url => {
+    return new Promise(function(resolve, reject) {
+      var audio = new Audio();
+      audio.src = url;
+      audio.onload = function() {
+        resolve();
+      };
+      audio.onerror = function() {
+        reject();
+      };
+    });
+  };
+
   // 判断GitHub上是否存在数据，username不为空
   fetchComments = async username => {
     let comments;
     let commentsExist = false;
     let commentsPage = 1;
     do {
+      this.state.status = '正在读取缓存';
+      this.state.requestNums = this.state.requestNums + 1;
       comments = await this.octokit.issues.listComments({
         owner: OWNER,
         repo: REPO,
@@ -137,12 +206,12 @@ class App extends Component {
       for (const comment of comments.data) {
         if (comment.user.login === username) {
           try {
-            this.collectInfo = JSON.parse(comment.body); //
+            this.info = JSON.parse(comment.body); //
           } catch (e) {
             this.setState({ failed: true });
           }
-          this.collectInfo.specialDay.date = new Date(this.collectInfo.specialDay.date);
-          this.collectInfo.latestDay.date = new Date(this.collectInfo.latestDay.date);
+          this.info.specialDay.date = new Date(this.info.specialDay.date);
+          this.info.latestDay.date = new Date(this.info.latestDay.date);
           commentsExist = true;
           break;
         }
@@ -152,351 +221,8 @@ class App extends Component {
     return commentsExist;
   };
 
-  calc = async () => {
-    // 远程获取Issue Star repo commit信息
-    const promiseArr = await this.fetchInfo();
-    // 等待全部异步请求结束
-    await Promise.all(promiseArr);
-    this.analysisSingle();
-    this.analysisCollect();
-  };
-
-  // 综合所有仓库做分析
-  analysisCollect = () => {
-    this.getCollectLanguage();
-    this.getCollectRepoNums();
-    this.getCollectCommitNums();
-    this.getCollectSpecialDay();
-    this.getCollectLatestDay();
-    this.getCollectCommitDays();
-    this.getCollectPeriod();
-    this.getCollectForget();
-    this.getCollectWeekDays();
-  };
-
-  // 分析工作日和休息日
-  getCollectWeekDays = () => {
-    const hashObject = {};
-    this.collectInfo.weekdayNums = 0;
-    this.collectInfo.weekendNums = 0;
-    this.collectInfo.likeWeekType = {
-      name: '',
-      count: 0,
-    };
-    this.repos.forEach(repo => {
-      repo.commitTime.forEach(time => {
-        const key = new Date(time).toDateString();
-        if (!(key in hashObject)) {
-          hashObject[key] = true;
-          if (new Date(time).getDay() === 6 || new Date(time).getDay() === 0) {
-            this.collectInfo.weekendNums++;
-          } else {
-            this.collectInfo.weekdayNums++;
-          }
-        }
-      });
-    });
-    if (this.collectInfo.weekendNums > this.collectInfo.weekdayNums) {
-      this.collectInfo.likeWeekType.name = '周末';
-      this.collectInfo.likeWeekType.count = this.collectInfo.weekendNums;
-    } else {
-      this.collectInfo.likeWeekType.name = '工作日';
-      this.collectInfo.likeWeekType.count = this.collectInfo.weekdayNums;
-    }
-  };
-
-  // 分析被遗忘的编程语言
-  getCollectForget = () => {
-    // 计算每种语言最后一次提交时间的hash
-    this.collectInfo.languageLastCommit = {};
-    const hashObject = this.collectInfo.languageLastCommit;
-    this.repos.forEach(repo => {
-      const key = repo.language;
-      if (key) {
-        // 最晚提交时间
-        if (key in hashObject) {
-          const current = new Date(repo.commitTime[0]);
-          hashObject[key] = hashObject[key].getTime() > current.getTime() ? hashObject[key] : current;
-        } else {
-          hashObject[key] = new Date(repo.commitTime[0]);
-        }
-      }
-    });
-    // 计算最后一次提交最早的语言
-    this.collectInfo.forget = {
-      language: '',
-      date: '',
-    };
-    const forget = this.collectInfo.forget;
-    Object.keys(hashObject).forEach(key => {
-      if (forget.date === '' || hashObject[key].getTime() < forget.date.getTime()) {
-        forget.language = key;
-        forget.date = hashObject[key];
-      }
-    });
-  };
-
-  // 分析所有的时间段提交情况，并选出提交最多的时间端
-  getCollectPeriod = () => {
-    this.collectInfo.period = {
-      morningNums: 0,
-      afternoonNums: 0,
-      eveningNums: 0,
-      dawnNums: 0,
-    };
-    const period = this.collectInfo.period;
-    this.repos.forEach(repo => {
-      period.morningNums += repo.morningNums;
-      period.afternoonNums += repo.afternoonNums;
-      period.eveningNums += repo.eveningNums;
-      period.dawnNums += repo.dawnNums;
-    });
-    this.collectInfo.likePeriod = {
-      name: '',
-      count: 0,
-    };
-    const likePeriod = this.collectInfo.likePeriod;
-    Object.keys(period).forEach(key => {
-      if (period[key] > likePeriod.count) {
-        likePeriod.count = period[key];
-        likePeriod.name = key;
-      }
-    });
-    if (likePeriod.name === 'morningNums') {
-      likePeriod.name = '清晨';
-    } else if (likePeriod.name === 'afternoonNums') {
-      likePeriod.name = '午后';
-    } else if (likePeriod.name === 'eveningNums') {
-      likePeriod.name = '傍晚';
-    } else if (likePeriod.name === 'dawnNums') {
-      likePeriod.name = '凌晨';
-    }
-  };
-
-  // 分析所有仓库中提交天数最多的一个
-  getCollectCommitDays = () => {
-    this.collectInfo.mostDay = {
-      count: 0,
-      repo: '',
-    };
-    if (this.repos.length === 1) {
-      const repo = this.repos[0];
-      this.collectInfo.mostDay = {
-        count: repo.sumDays,
-        repo: repo.repo,
-      };
-    } else if (this.repos.length > 1) {
-      const repo = this.repos.reduce((pre, cur) => (pre.sumDays > cur.sumDays ? pre : cur));
-      this.collectInfo.mostDay = {
-        count: repo.sumDays,
-        repo: repo.repo,
-      };
-    }
-  };
-
-  // 分析提交代码最晚的一天
-  getCollectLatestDay = () => {
-    this.collectInfo.latestDay = {
-      date: '',
-      repo: '',
-    };
-    if (this.repos.length === 1) {
-      const repo = this.repos[0];
-      this.collectInfo.latestDay = {
-        date: repo.latestTime,
-        repo: repo.repo,
-      };
-    } else if (this.repos.length > 1) {
-      const repo = this.repos.reduce((pre, cur) => {
-        if (cur.latestTime === '') {
-          return pre;
-        }
-        if (pre.latestTime === '') {
-          return cur;
-        }
-        const date = this.compareLate(pre.latestTime, cur.latestTime);
-        return pre.latestTime.getTime() === date.getTime() ? pre : cur;
-      });
-      this.collectInfo.latestDay = {
-        date: repo.latestTime,
-        repo: repo.repo,
-      };
-    }
-  };
-
-  // 分析对某个仓库提交次数特别多的一天，特殊的一天
-  getCollectSpecialDay = () => {
-    this.collectInfo.specialDay = {
-      date: '',
-      repo: '',
-      count: 0,
-    };
-    if (this.repos.length === 1) {
-      const repo = this.repos[0];
-      this.collectInfo.specialDay = {
-        date: repo.commitMostDay.date,
-        repo: repo.repo,
-        count: repo.commitMostDay.count,
-      };
-    } else if (this.repos.length > 1) {
-      const repo = this.repos.reduce((pre, cur) => (pre.commitMostDay.count > cur.commitMostDay.count ? pre : cur));
-      this.collectInfo.specialDay = {
-        date: repo.commitMostDay.date,
-        repo: repo.repo,
-        count: repo.commitMostDay.count,
-      };
-    }
-  };
-
-  // 分析提交总次数
-  getCollectCommitNums = () => {
-    this.collectInfo.commitNums = 0;
-    if (this.repos.length === 1) {
-      this.collectInfo.commitNums = this.repos[0].commitTime.length;
-    } else if (this.repos.length > 1) {
-      this.collectInfo.commitNums = this.repos.reduce((pre, cur) =>
-        typeof pre === 'number' ? pre + cur.commitTime.length : pre.commitTime.length + cur.commitTime.length
-      );
-    }
-  };
-
-  // 分析对多少仓库提交过代码
-  getCollectRepoNums = () => {
-    this.collectInfo.repoNums = this.repos.length;
-  };
-
-  // 分析编程语言数量，用的最多的年度编程语言
-  getCollectLanguage = () => {
-    // 计算年度编程语言
-    this.collectInfo.mostLanguage = {
-      name: '',
-      repoNums: 0,
-    };
-    // 语言各有多少仓库
-    this.collectInfo.language = {};
-    const hashObject = this.collectInfo.language;
-    this.repos.forEach(repo => {
-      if (repo.language) {
-        const key = repo.language;
-        if (key in hashObject) {
-          hashObject[key]++;
-        } else {
-          hashObject[key] = 1;
-        }
-        if (hashObject[key] > this.collectInfo.mostLanguage.repoNums) {
-          this.collectInfo.mostLanguage.name = key;
-          this.collectInfo.mostLanguage.repoNums = hashObject[key];
-        }
-      }
-    });
-    // 共用了多少种语言
-    this.collectInfo.languageNums = Object.keys(hashObject).length;
-    // 计算总提交数
-    this.collectInfo.mostLanguage.commitNums = 0;
-    this.repos.forEach(repo => {
-      if (repo.language === this.collectInfo.mostLanguage.name) {
-        this.collectInfo.mostLanguage.commitNums += repo.commitTime.length;
-      }
-    });
-  };
-
-  // 对每个仓库做分析
-  analysisSingle = () => {
-    this.getSingleCommitDays();
-    this.getSingleLatestTime();
-    this.getSinglePeriodNums();
-  };
-
-  // 分析每个仓库 上午，下午，晚上，凌晨的提交次数
-  getSinglePeriodNums = () => {
-    this.repos.forEach(repo => {
-      repo.morningNums = 0;
-      repo.afternoonNums = 0;
-      repo.eveningNums = 0;
-      repo.dawnNums = 0;
-      repo.commitTime.forEach(time => {
-        const hours = new Date(time).getHours();
-        if (hours >= 0 && hours < 6) {
-          repo.dawnNums++;
-        } else if (hours >= 6 && hours < 12) {
-          repo.morningNums++;
-        } else if (hours >= 12 && hours < 18) {
-          repo.afternoonNums++;
-        } else if (hours >= 18 && hours < 24) {
-          repo.eveningNums++;
-        }
-      });
-    });
-  };
-
-  // 分析每个仓库提交最多的天数 和 提交的总天数
-  getSingleCommitDays = () => {
-    this.repos.forEach(repo => {
-      const hashObject = {};
-      repo.commitMostDay = {
-        date: '',
-        count: 0,
-      };
-      repo.commitTime.forEach(time => {
-        const key = new Date(time).toDateString();
-        if (key in hashObject) {
-          hashObject[key]++;
-        } else {
-          hashObject[key] = 1;
-        }
-        if (hashObject[key] > repo.commitMostDay.count) {
-          repo.commitMostDay.count = hashObject[key];
-          repo.commitMostDay.date = new Date(time);
-        }
-      });
-      repo.sumDays = Object.keys(hashObject).length;
-    });
-  };
-
-  // 分析每个仓库提交最晚的时间
-  getSingleLatestTime = () => {
-    // 23:00 - 4:00 睡得较晚
-    const late = [23, 0, 1, 2, 3];
-    this.repos.forEach(repo => {
-      repo.latestTime = '';
-      repo.commitTime.forEach(time => {
-        // 在这几个时间段内
-        const current = new Date(time);
-        if (late.includes(current.getHours())) {
-          if (repo.latestTime === '') {
-            repo.latestTime = new Date(time);
-          } else {
-            repo.latestTime = this.compareLate(repo.latestTime, current);
-          }
-        }
-      });
-    });
-  };
-
-  // 只有23:00 - 4:00的时间可以进入，保证不为空
-  compareLate = (latest, current) => {
-    // 分别比较时分秒
-    const currentHours = current.getHours() === 23 ? -1 : current.getHours();
-    const latestHours = latest.getHours() === 23 ? -1 : latest.getHours();
-    if (currentHours > latestHours) {
-      return current;
-    } else if (currentHours === latestHours) {
-      const currentMinutes = current.getMinutes();
-      const latestMinutes = latest.getMinutes();
-      if (currentMinutes > latestMinutes) {
-        return current;
-      } else if (currentMinutes === latestMinutes) {
-        const currentSeconds = current.getSeconds();
-        const latestSeconds = latest.getSeconds();
-        if (currentSeconds > latestSeconds) {
-          return current;
-        }
-      }
-    }
-    return latest;
-  };
-
   fetchUser = async () => {
+    this.setState({ status: '正在获取用户信息', requestNums: this.state.requestNums + 1 });
     // 获取用户名和头像
     const userInfo = await this.octokit.users.getAuthenticated();
     if (userInfo.status !== STATUS.OK) {
@@ -505,23 +231,31 @@ class App extends Component {
     }
     localStorage.setItem(USERNAME, userInfo.data.login);
     localStorage.setItem(AVATAR, userInfo.data.avatar_url);
+    this.setState({ status: '用户信息获取成功' });
   };
 
+  // 包含fetchIssues, fetchStars, fetchRepos, fetchCommits
   fetchInfo = async () => {
     const promiseArr = [];
-
     // 获取issue数量
     promiseArr.push(this.fetchIssues());
-
     // 获取star数量
     promiseArr.push(this.fetchStars());
+    // 获取repo信息
+    promiseArr.push(this.fetchRepo(promiseArr));
+    // 等待全部异步请求结束
+    await Promise.all(promiseArr);
+  };
 
+  //  获取仓库信息
+  fetchRepo = async promiseArr => {
     // 分页，取出当前用户的满足条件的仓库
     this.repos = [];
     let repos;
     let repoPage = 1;
     let repoOver = false;
     do {
+      this.setState({ status: '正在获取仓库', requestNums: this.state.requestNums + 1 });
       repos = await this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: this.per_page, page: repoPage });
       if (repos.status !== STATUS.OK) {
         this.setState({ failed: true });
@@ -548,39 +282,49 @@ class App extends Component {
       }
       repoPage++;
     } while (repos.data.length === this.per_page && !repoOver);
-    return promiseArr;
+    this.setState({ status: '仓库获取成功' });
   };
 
   // 获取issue数量
   fetchIssues = async () => {
     let issues;
     let issuePage = 1;
-    this.collectInfo.issueNums = 0;
+    this.info.issueNums = 0;
     do {
-      issues = await this.octokit.issues.list({ filter: 'all', per_page: this.per_page, page: issuePage });
+      this.setState({ status: '正在获取Issue', requestNums: this.state.requestNums + 1 });
+      issues = await this.octokit.issues.list({
+        filter: 'all',
+        state: 'all',
+        since: this.y2018.toISOString(),
+        per_page: this.per_page,
+        page: issuePage,
+      });
       if (issues.status !== STATUS.OK) {
         this.setState({ failed: true });
         return;
       }
-      this.collectInfo.issueNums += issues.data.length;
+      this.info.issueNums += issues.data.length;
       issuePage++;
     } while (issues.data.length === this.per_page);
+    this.setState({ status: 'Issue获取成功' });
   };
 
   // 获取star数量
   fetchStars = async () => {
     let stars;
     let starPage = 1;
-    this.collectInfo.starNums = 0;
+    this.info.starNums = 0;
     do {
-      stars = await this.octokit.activity.listReposStarredByAuthenticatedUser({ per_page: this.per_page, page: starPage });
+      this.setState({ status: '正在获取Star', requestNums: this.state.requestNums + 1 });
+      stars = await this.octokit.activity.listReposStarredByAuthenticatedUser({ sort: 'created', per_page: this.per_page, page: starPage });
       if (stars.status !== STATUS.OK) {
         this.setState({ failed: true });
         return;
       }
-      this.collectInfo.starNums += stars.data.length;
+      this.info.starNums += stars.data.length;
       starPage++;
     } while (stars.data.length === this.per_page);
+    this.setState({ status: 'Star获取成功' });
   };
 
   // 获取提交记录，同步函数
@@ -596,6 +340,7 @@ class App extends Component {
     let commitOver = false;
     // 分页，取出当前仓库2018-2019年的全部提交
     do {
+      this.setState({ status: `正在获取${repo.name}的Commit`, requestNums: this.state.requestNums + 1 });
       commits = await this.octokit.repos.listCommits({
         owner: repo.owner.login,
         repo: repo.name,
@@ -634,9 +379,11 @@ class App extends Component {
     if (currentRepo.commitTime.length > 0) {
       this.repos.push(currentRepo);
     }
+    this.setState({ status: `${repo.name}的Commit获取成功` });
   };
 
   fetchToken = async code => {
+    this.setState({ status: `正在获取Token`, requestNums: this.state.requestNums + 1 });
     const res = await axiosJSON.post(PROXY, {
       code,
       client_id: CLIENT_ID,
@@ -647,6 +394,7 @@ class App extends Component {
       return;
     }
     localStorage.setItem(ACCESS_TOKEN, res.data.access_token);
+    this.setState({ status: `Token获取成功` });
   };
 
   authenticate = () => {
@@ -658,7 +406,7 @@ class App extends Component {
 
   login = () => {
     this.setState({ loading: true });
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=repo`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=public_repo`;
   };
 
   onClose = () => {
@@ -667,12 +415,19 @@ class App extends Component {
 
   render() {
     let firstPage = null;
+    const styles = {
+      firstPage: {
+        backgroundImage: `url(http://githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg)`,
+        backgroundSize: '100%',
+      },
+    };
     if (this.state.loading) {
-      firstPage = <Spin size="large" />;
+      firstPage = <Spin className="spin" size="large" tip={this.state.status} />;
     } else if (this.state.viewOther) {
       firstPage = (
         <div className="header">
-          <p>想看其他人2018年度GitHub代码报告么？请先登录</p>
+          <p>想看其他人2018年度GitHub代码报告么？</p>
+          <p>请先登录</p>
           <Button className="login" type="primary" onClick={this.login}>
             <GitHub className="github" />
             登录
@@ -693,7 +448,8 @@ class App extends Component {
     } else {
       firstPage = (
         <div className="header">
-          <p>想看自己2018年度GitHub代码报告么？请先登录</p>
+          <p>想看自己2018年度GitHub代码报告么？</p>
+          <p>请先登录</p>
           <Button className="login" type="primary" onClick={this.login}>
             <GitHub className="github" />
             登录
@@ -704,14 +460,21 @@ class App extends Component {
     return (
       <div className="App">
         {this.state.firstPage ? (
-          <div className="firstPage">
+          <div className="firstPage" style={styles.firstPage}>
             {this.state.failed ? (
-              <Alert className="failed" message="获取你的GitHub年终总结失败，请刷新重试" type="error" closable afterClose={this.onClose} banner/>
+              <Alert
+                className="failed"
+                message="获取你的GitHub年终总结失败，请刷新重试"
+                type="error"
+                closable
+                afterClose={this.onClose}
+                banner
+              />
             ) : null}
             {firstPage}
           </div>
         ) : (
-          <Slide collectInfo={this.collectInfo} octokit={this.octokit} />
+          <Slide info={this.info} octokit={this.octokit} />
         )}
       </div>
     );

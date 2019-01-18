@@ -34,3 +34,26 @@ export const axiosGithub = axios.create({
     'Accept': 'application/json'
   }
 })
+
+// 只有23:00 - 4:00的时间可以进入，保证不为空
+export const compareLate = (latest, current) => {
+  // 分别比较时分秒
+  const currentHours = current.getHours() === 23 ? -1 : current.getHours();
+  const latestHours = latest.getHours() === 23 ? -1 : latest.getHours();
+  if (currentHours > latestHours) {
+    return current;
+  } else if (currentHours === latestHours) {
+    const currentMinutes = current.getMinutes();
+    const latestMinutes = latest.getMinutes();
+    if (currentMinutes > latestMinutes) {
+      return current;
+    } else if (currentMinutes === latestMinutes) {
+      const currentSeconds = current.getSeconds();
+      const latestSeconds = latest.getSeconds();
+      if (currentSeconds > latestSeconds) {
+        return current;
+      }
+    }
+  }
+  return latest;
+};

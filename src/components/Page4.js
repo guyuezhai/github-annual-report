@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Moon } from '../icon/moon.svg';
+import { ReactComponent as Day } from '../icon/day.svg';
 
 class Page1 extends Component {
   render() {
@@ -30,32 +30,31 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.info.latestDay.date !== '' && this.props.page === 4 ? (
+        {this.props.info.specialDay.date !== '' && this.props.page === 4 ? (
           <div className="page">
-          <Moon className="mb20"/>
+            <Day className="mb20"/>
             <p style={styles.fadeInUp1s} className="stress">
-              {this.props.info.latestDay.date.getMonth() + 1}月{this.props.info.latestDay.date.getDate()}日
+              {this.props.info.specialDay.date.getMonth() + 1}月{this.props.info.specialDay.date.getDate()}日
             </p>
-            <p style={styles.fadeInUp1s}>这一天你睡得很晚</p>
             <p style={styles.fadeInUp1_5s} className="mb20">
-              <span className="stress">
-                {this.props.info.latestDay.date.getHours()}点{this.props.info.latestDay.date.getMinutes()}分
-              </span>
-              你还在与代码为伴
+              大概是很特别的一天
             </p>
-            <p style={styles.fadeInUp2s}>那一刻</p>
-            <p style={styles.fadeInUp2s}>
+            <p style={styles.fadeInUp2s}>这一天里</p>
+            <p style={styles.fadeInUp2_5s}>
               你向
-              <span className="stress">{this.props.info.latestDay.repo}</span>
-              仓库提交了代码
+              <span className="stress">{this.props.info.specialDay.repo}</span>
+              仓库提交了
+            </p>
+            <p style={styles.fadeInUp3s}>
+              <span className="stress">{this.props.info.specialDay.count}</span>
+              次代码
             </p>
           </div>
         ) : this.props.page === 4 ? (
           <div className="page">
-          <Moon className="mb20"/>
-            <p style={styles.fadeInUp1s}>每一天</p>
-            <p style={styles.fadeInUp1s}>你休息得都很好</p>
-            <p style={styles.fadeInUp1s}>早早地完成了代码提交工作</p>
+          <Day/>
+            <p style={styles.fadeInUp1s}>你没有什么特别的一天</p>
+            <p style={styles.fadeInUp1s}>你的每天都一样精彩</p>
           </div>
         ) : null}
       </StyleRoot>

@@ -11,6 +11,7 @@ const analysisInfo = (info, repos) => {
   getPeriod(info, repos);
   getForget(info, repos);
   getWeekDays(info, repos);
+  getLines(info, repos);
 };
 
 // 分析工作日和休息日
@@ -236,6 +237,18 @@ const getLanguage = (info, repos) => {
     if (repo.language === info.mostLanguage.name) {
       info.mostLanguage.commitNums += repo.commitTime.length;
     }
+  });
+};
+
+// 分析代码行数
+const getLines = (info, repos) => {
+  info.addLines = 0;
+  info.deleteLines = 0;
+  info.totalLines = 0;
+  repos.forEach(repo => {
+    info.addLines += repo.addLines;
+    info.deleteLines += repo.deleteLines;
+    info.totalLines += repo.totalLines;
   });
 };
 

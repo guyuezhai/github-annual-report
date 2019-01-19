@@ -64,6 +64,15 @@ class Page2 extends Component {
             ) : (
               <p style={styles.fadeInUp2s}>提交了多次代码</p>
             )}
+            {this.props.info.eventNums !== 0 ? (
+              <p style={styles.fadeInUp2s}>
+                活跃了
+                <span className="stress">{this.props.info.eventNums}</span>
+                天的时间
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2s}>在社区中比较沉寂</p>
+            )}
           </div>
         ) : null}
       </StyleRoot>

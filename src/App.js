@@ -38,6 +38,7 @@ class App extends Component {
       viewOtherNot: false,
       status: '正在读取数据...',
       requestNums: 0,
+      fineshedRequest: 0,
     };
     this.octokit = new Octokit();
     this.repos = {};
@@ -48,6 +49,24 @@ class App extends Component {
     this.issueNum = 1;
 
     this.run();
+  }
+
+  componentDidMount() {
+    this.timerID = setInterval(() => this.tick(), 5000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+
+  tick() {
+    if (this.state.fineshedRequest === this.state.requestNums) {
+      clearInterval(this.timerID);
+    } else {
+      this.setState({
+        status: `请求完成比：${this.state.fineshedRequest}/${this.state.requestNums}`,
+      });
+    }
   }
 
   // 权限和路由参数处理
@@ -63,11 +82,11 @@ class App extends Component {
         const isExisted = await this.fetchComments(query.username);
         // 如果GitHub上不存在数据
         if (!isExisted) {
-          this.setState({ status: '缓存数据不存在' });
+          this.setState({ status: '缓存数据不存在', fineshedRequest: this.state.fineshedRequest + 1 });
           // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
           if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
             await this.calc();
-            // console.log(this.repos);
+            console.log(this.repos);
             console.log(this.info);
             this.setState({ loading: false, firstPage: false });
           }
@@ -231,7 +250,7 @@ class App extends Component {
     }
     localStorage.setItem(USERNAME, userInfo.data.login);
     localStorage.setItem(AVATAR, userInfo.data.avatar_url);
-    this.setState({ status: '用户信息获取成功' });
+    this.setState({ status: '用户信息获取成功', fineshedRequest: this.state.fineshedRequest + 1 });
   };
 
   // 包含fetchIssues, fetchStars, fetchRepos, fetchCommits
@@ -241,14 +260,57 @@ class App extends Component {
     promiseArr.push(this.fetchIssues());
     // 获取star数量
     promiseArr.push(this.fetchStars());
+    // 获取event数量
+    promiseArr.push(this.fetchEvents());
     // 获取repo信息
-    promiseArr.push(this.fetchRepo(promiseArr));
+    promiseArr.push(this.fetchRepo());
     // 等待全部异步请求结束
     await Promise.all(promiseArr);
   };
 
+  fetchEvents = async () => {
+    let events;
+    let eventOver = false;
+    let eventPage = 1;
+    const hashObject = {}
+    this.info.eventNums = 0;
+    do {
+      this.setState({ status: '正在获取Event', requestNums: this.state.requestNums + 1 });
+      events = await this.octokit.activity.listPublicEventsForUser({ username: localStorage.getItem(USERNAME), per_page: this.per_page, page: eventPage });
+      if (events.status !== STATUS.OK) {
+        this.setState({ failed: true });
+        return;
+      }
+      // 遍历所有活动
+      for (const event of events.data) {
+        const created_at = new Date(event.created_at);
+        // 活动时间小于2018年，因为降序排列，所以后序活动不需遍历
+        if (created_at.getTime() <= this.y2018.getTime()) {
+          eventOver = true;
+          break;
+        }
+        // 仓库创建时间大于2019年，跳过遍历下一个仓库
+        if (created_at.getTime() >= this.y2019.getTime()) {
+          continue;
+        }
+        const key = created_at.getTime()
+        if(key in hashObject) {
+          continue;
+        } else {
+          hashObject[key] = true;
+        }
+      }
+      this.info.eventNums += events.data.length;
+      this.setState({ status: `第${eventPage}页Event获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
+      eventPage++;
+    } while (events.data.length === this.per_page && !eventOver);
+    this.info.eventNums =Object.keys(hashObject).length;
+    this.setState({ status: 'Event获取成功' });
+  }
+
   //  获取仓库信息
-  fetchRepo = async promiseArr => {
+  fetchRepo = async () => {
+    const promiseArr = [];
     // 分页，取出当前用户的满足条件的仓库
     this.repos = [];
     let repos;
@@ -280,9 +342,12 @@ class App extends Component {
           promiseArr.push(this.fetchCommits(repo));
         }
       }
+      this.setState({ status: `第${repoPage}页仓库获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       repoPage++;
     } while (repos.data.length === this.per_page && !repoOver);
-    this.setState({ status: '仓库获取成功' });
+    // 等待全部异步请求结束
+    await Promise.all(promiseArr);
+    this.setState({ status: `仓库获取成功` });
   };
 
   // 获取issue数量
@@ -304,6 +369,7 @@ class App extends Component {
         return;
       }
       this.info.issueNums += issues.data.length;
+      this.setState({ status: `第${issuePage}页Issue获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       issuePage++;
     } while (issues.data.length === this.per_page);
     this.setState({ status: 'Issue获取成功' });
@@ -322,18 +388,23 @@ class App extends Component {
         return;
       }
       this.info.starNums += stars.data.length;
+      this.setState({ status: `第${starPage}页Star获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       starPage++;
     } while (stars.data.length === this.per_page);
     this.setState({ status: 'Star获取成功' });
   };
 
-  // 获取提交记录，同步函数
+  // 获取提交记录
   fetchCommits = async repo => {
     const currentRepo = {
       repo: repo.name,
       owner: repo.owner.login,
       language: repo.language,
       commitTime: [],
+      commitSha: [],
+      addLines: 0,
+      deleteLines: 0,
+      totalLines: 0,
     };
     let commits;
     let commitPage = 1;
@@ -370,9 +441,12 @@ class App extends Component {
           (commit.commit.committer && commit.commit.committer.name === localStorage.getItem(USERNAME))
         ) {
           currentRepo.commitTime.push(commit.commit.committer.date);
+          currentRepo.commitSha.push(commit.sha);
+          // 获取单个commit信息
+          await this.fetchSingleCommit(currentRepo, repo.name, repo.owner.login, commit.sha);
         }
       }
-      // console.log(commits.data);
+      this.setState({ status: `${repo.name}的第${commitPage}页Commit获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       commitPage++;
     } while (commits.data.length === this.per_page && !commitOver);
     // 2018年存在提交记录则将该仓库加入
@@ -380,6 +454,20 @@ class App extends Component {
       this.repos.push(currentRepo);
     }
     this.setState({ status: `${repo.name}的Commit获取成功` });
+  };
+
+  // 获取单个提交记录
+  fetchSingleCommit = async (currentRepo, repo, owner, sha) => {
+    this.setState({ requestNums: this.state.requestNums + 1 });
+    const commit = await this.octokit.repos.getCommit({ owner, repo, sha });
+    if (commit.status !== STATUS.OK) {
+      this.setState({ failed: true });
+      return;
+    }
+    currentRepo.addLines += commit.data.stats.additions;
+    currentRepo.deleteLines += commit.data.stats.deletions;
+    currentRepo.totalLines += commit.data.stats.additions + commit.data.stats.deletions;
+    this.setState({ fineshedRequest: this.state.fineshedRequest + 1 });
   };
 
   fetchToken = async code => {

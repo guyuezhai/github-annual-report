@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Language } from '../icon/language.svg';
+import { ReactComponent as Talk } from '../icon/talk.svg';
 
 class Page1 extends Component {
   render() {
@@ -30,23 +30,25 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.info.forget.language !== '' && this.props.page === 8 ? (
+        {this.props.page === 8 ? (
           <div className="page">
-          <Language className="mb20"/>
-            <p style={styles.fadeInUp1s}>还记得</p>
-            <p style={styles.fadeInUp1_5s}>世界上最好的语言</p>
-            <p style={styles.fadeInUp2s}>
-              <span className="stress">{this.props.info.forget.language}</span>吗
-            </p>
-            <p style={styles.fadeInUp2_5s}>你曾经很喜欢</p>
-            <p style={styles.fadeInUp3s}>但最近似乎把它遗忘了</p>
-          </div>
-        ) : this.props.page === 8 ? (
-          <div className="page">
-          <Language className="mb20"/>
-            <p style={styles.fadeInUp1s}>世界上最好的语言</p>
-            <p style={styles.fadeInUp1_5s}>引起了无数硝烟</p>
-            <p style={styles.fadeInUp2s}>但你岿然不动</p>
+          <Talk className="mb20"/>
+            <p style={styles.fadeInUp1s}>作为社区的一员</p>
+            <p style={styles.fadeInUp1_5s}>2018年</p>
+            {this.props.info.issueNums !== 0 ? (
+              <p style={styles.fadeInUp2s}>
+                你参与了<span className="stress">{this.props.info.issueNums}</span>个问题的讨论
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2s}>你暗中观察，没有参与到讨论中</p>
+            )}
+            {this.props.info.starNums !== 0 ? (
+              <p style={styles.fadeInUp2_5s}>
+                收藏了<span className="stress">{this.props.info.starNums}</span>个仓库
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2_5s}>没发现值得你收藏的仓库</p>
+            )}
           </div>
         ) : null}
       </StyleRoot>

@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Focus } from '../icon/focus.svg';
-
+import { ReactComponent as Moon } from '../icon/moon.svg';
 
 class Page1 extends Component {
   render() {
@@ -31,29 +30,32 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.info.mostDay.repo !== '' && this.props.page === 5 ? (
+        {this.props.info.latestDay.date !== '' && this.props.page === 5 ? (
           <div className="page">
-          <Focus className="mb20"/>
-            <p style={styles.fadeInUp1s}>这一年</p>
-            <p style={styles.fadeInUp1s}>
-              你有
-              <span className="stress">{this.props.info.mostDay.count}</span>
-              天都向
+          <Moon className="mb20"/>
+            <p style={styles.fadeInUp1s} className="stress">
+              {this.props.info.latestDay.date.getMonth() + 1}月{this.props.info.latestDay.date.getDate()}日
             </p>
-            <p style={styles.fadeInUp1s} className="mb20">
-              <span className="stress">{this.props.info.mostDay.repo}</span>
-              提交了代码
+            <p style={styles.fadeInUp1s}>这一天你睡得很晚</p>
+            <p style={styles.fadeInUp1_5s} className="mb20">
+              <span className="stress">
+                {this.props.info.latestDay.date.getHours()}点{this.props.info.latestDay.date.getMinutes()}分
+              </span>
+              你还在与代码为伴
             </p>
-            <p style={styles.fadeInUp2s}>所有熟悉的项目中</p>
-            <p style={styles.fadeInUp2s}>你对它最专一</p>
+            <p style={styles.fadeInUp2s}>那一刻</p>
+            <p style={styles.fadeInUp2s}>
+              你向
+              <span className="stress">{this.props.info.latestDay.repo}</span>
+              仓库提交了代码
+            </p>
           </div>
         ) : this.props.page === 5 ? (
           <div className="page">
-          <Focus className="mb20"/>
-            <p style={styles.fadeInUp1s}>这一年</p>
-            <p style={styles.fadeInUp1_5s}>你没有很心仪的项目</p>
-            <p style={styles.fadeInUp2s}>大概在项目管理上</p>
-            <p style={styles.fadeInUp2_5s}>有了不少提高</p>
+          <Moon className="mb20"/>
+            <p style={styles.fadeInUp1s}>每一天</p>
+            <p style={styles.fadeInUp1s}>你休息得都很好</p>
+            <p style={styles.fadeInUp1s}>早早地完成了代码提交工作</p>
           </div>
         ) : null}
       </StyleRoot>

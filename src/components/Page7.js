@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Talk } from '../icon/talk.svg';
+import { ReactComponent as Time } from '../icon/time.svg';
 
 class Page1 extends Component {
   render() {
@@ -30,25 +30,29 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.page === 7 ? (
+        {this.props.info.likePeriod.name !== '' && this.props.page === 7 ? (
           <div className="page">
-          <Talk className="mb20"/>
-            <p style={styles.fadeInUp1s}>作为社区的一员</p>
-            <p style={styles.fadeInUp1_5s}>2018年</p>
-            {this.props.info.issueNums !== 0 ? (
-              <p style={styles.fadeInUp2s}>
-                你参与了<span className="stress">{this.props.info.issueNums}</span>个问题的讨论
-              </p>
-            ) : (
-              <p style={styles.fadeInUp2s}>你暗中观察，没有参与到讨论中</p>
-            )}
-            {this.props.info.starNums !== 0 ? (
-              <p style={styles.fadeInUp2_5s}>
-                收藏了<span className="stress">{this.props.info.starNums}</span>个仓库
-              </p>
-            ) : (
-              <p style={styles.fadeInUp2_5s}>没发现值得你收藏的仓库</p>
-            )}
+          <Time className="mb20"/>
+            <p style={styles.fadeInUp1s}>
+              你喜欢在<span className="stress">{this.props.info.likePeriod.name}</span>提交代码
+            </p>
+            <p style={styles.fadeInUp1_5s}>
+              特别是
+              {this.props.info.likeWeekType.name === '工作日' ? '繁忙的' : '安静的'}
+              <span className="stress">{this.props.info.likeWeekType.name}</span>
+            </p>
+            <p style={styles.fadeInUp2s}>365天中</p>
+            <p style={styles.fadeInUp2_5s}>
+              你有<span className="stress">{this.props.info.likeWeekType.count}</span>个{this.props.info.likeWeekType.name}
+              提交了代码
+            </p>
+          </div>
+        ) : this.props.page === 7 ? (
+          <div className="page">
+          <Time className="mb20"/>
+            <p style={styles.fadeInUp1s}>你没有固定的提交代码时间段</p>
+            <p style={styles.fadeInUp1_5s}>无论是繁忙的工作日</p>
+            <p style={styles.fadeInUp2s}>还安静的是周末</p>
           </div>
         ) : null}
       </StyleRoot>

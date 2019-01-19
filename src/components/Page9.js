@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Prize } from '../icon/prize.svg';
+import { ReactComponent as Language } from '../icon/language.svg';
 
 class Page1 extends Component {
   render() {
@@ -30,28 +30,23 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.info.mostLanguage.name !== '' && this.props.page === 9 ? (
+        {this.props.info.forget.language !== '' && this.props.page === 9 ? (
           <div className="page">
-          <Prize className="mb20"/>
-            <p style={styles.fadeInUp1s}>
-              你的年度语言是<span className="stress">{this.props.info.mostLanguage.name}</span>
-            </p>
-            <p style={styles.fadeInUp1_5s}>一年中</p>
+          <Language className="mb20"/>
+            <p style={styles.fadeInUp1s}>还记得</p>
+            <p style={styles.fadeInUp1_5s}>世界上最好的语言</p>
             <p style={styles.fadeInUp2s}>
-              你向<span className="stress">{this.props.info.mostLanguage.repoNums}</span>个{this.props.info.mostLanguage.name}
-              仓库
+              <span className="stress">{this.props.info.forget.language}</span>吗
             </p>
-            <p style={styles.fadeInUp2_5s}>
-              提交了<span className="stress">{this.props.info.mostLanguage.commitNums}</span>次代码
-            </p>
+            <p style={styles.fadeInUp2_5s}>你曾经很喜欢</p>
+            <p style={styles.fadeInUp3s}>但最近似乎把它遗忘了</p>
           </div>
         ) : this.props.page === 9 ? (
           <div className="page">
-          <Prize className="mb20"/>
-            <p style={styles.fadeInUp1s}>本年度</p>
-            <p style={styles.fadeInUp1_5s}>所有的编程语言</p>
-            <p style={styles.fadeInUp2s}>在你面前</p>
-            <p style={styles.fadeInUp2_5s}>都已自惭形秽</p>
+          <Language className="mb20"/>
+            <p style={styles.fadeInUp1s}>世界上最好的语言</p>
+            <p style={styles.fadeInUp1_5s}>引起了无数硝烟</p>
+            <p style={styles.fadeInUp2s}>但你岿然不动</p>
           </div>
         ) : null}
       </StyleRoot>

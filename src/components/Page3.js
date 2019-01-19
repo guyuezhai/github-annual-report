@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { fadeInUp } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 import './Slide.css';
-import { ReactComponent as Day } from '../icon/day.svg';
+import { ReactComponent as Line } from '../icon/line.svg';
 
-class Page1 extends Component {
+class Page2 extends Component {
   render() {
     const styles = {
       fadeInUp1s: {
@@ -30,31 +30,40 @@ class Page1 extends Component {
     };
     return (
       <StyleRoot>
-        {this.props.info.specialDay.date !== '' && this.props.page === 3 ? (
+        {this.props.page === 3 ? (
           <div className="page">
-            <Day className="mb20"/>
-            <p style={styles.fadeInUp1s} className="stress">
-              {this.props.info.specialDay.date.getMonth() + 1}月{this.props.info.specialDay.date.getDate()}日
+            <Line className="mb20"/>
+            <p style={styles.fadeInUp1s}>与此同时</p>
+            <p style={styles.fadeInUp1s} className="mb20">
+              在你的敲击下
             </p>
-            <p style={styles.fadeInUp1_5s} className="mb20">
-              大概是很特别的一天
-            </p>
-            <p style={styles.fadeInUp2s}>这一天里</p>
-            <p style={styles.fadeInUp2_5s}>
-              你向
-              <span className="stress">{this.props.info.specialDay.repo}</span>
-              仓库提交了
-            </p>
-            <p style={styles.fadeInUp3s}>
-              <span className="stress">{this.props.info.specialDay.count}</span>
-              次代码
-            </p>
-          </div>
-        ) : this.props.page === 3 ? (
-          <div className="page">
-          <Day/>
-            <p style={styles.fadeInUp1s}>你没有什么特别的一天</p>
-            <p style={styles.fadeInUp1s}>你的每天都一样精彩</p>
+            {this.props.info.addLines !== 0 ? (
+              <p style={styles.fadeInUp2s}>
+                增加了
+                <span className="stress">{this.props.info.addLines}</span>
+                行代码
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2s}>没有增加代码</p>
+            )}
+            {this.props.info.addLines !== 0 ? (
+              <p style={styles.fadeInUp2s}>
+                删除了
+                <span className="stress">{this.props.info.deleteLines}</span>
+                行代码
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2s}>没有删除代码</p>
+            )}
+            {this.props.info.addLines !== 0 ? (
+              <p style={styles.fadeInUp2s}>
+                总共有
+                <span className="stress">{this.props.info.totalLines}</span>
+                行代码被修改
+              </p>
+            ) : (
+              <p style={styles.fadeInUp2s}>没有代码被修改</p>
+            )}
           </div>
         ) : null}
       </StyleRoot>
@@ -62,4 +71,4 @@ class Page1 extends Component {
   }
 }
 
-export default Page1;
+export default Page2;

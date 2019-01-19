@@ -15,6 +15,7 @@ import Page8 from './Page8';
 import Page9 from './Page9';
 import Page10 from './Page10';
 import Page11 from './Page11';
+import Page12 from './Page12';
 
 class Slide extends Component {
   constructor(props) {
@@ -116,7 +117,10 @@ class Slide extends Component {
               <Page10 page={this.state.page} info={this.props.info} />
             </section>
             <section style={styles.section}>
-              <Page11 page={this.state.page} info={this.props.info} octokit={this.props.octokit} />
+              <Page11 page={this.state.page} info={this.props.info} />
+            </section>
+            <section style={styles.section}>
+              <Page12 page={this.state.page} info={this.props.info} octokit={this.props.octokit} />
             </section>
           </Swiper>
         </StyleRoot>

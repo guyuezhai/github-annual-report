@@ -18,7 +18,7 @@ class Page1 extends Component {
     };
     this.issueNum = 1;
     const query = queryParse();
-    if(localStorage.getItem(USERNAME) === query.username) {
+    if (localStorage.getItem(USERNAME) === query.username) {
       this.state.isSelf = true;
     } else {
       this.state.isSelf = false;
@@ -107,13 +107,18 @@ class Page1 extends Component {
             <p style={styles.fadeInUp1s} className="mb5" />
             <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
             {this.state.isSelf ? (
-            <Button type="primary" onClick={this.handleShare}>
-              点击分享
-            </Button>
-            ): 
-            <Button type="primary" onClick={this.handleBack}>
-            获取你自己的报告
-            </Button>}
+              <div className="page">
+                <span className="stress mb5">注意！！！</span>
+                <Button className="mb5" type="primary" onClick={this.handleShare}>
+                  点击此处存数据后分享
+                </Button>
+                <p>项目纯前端，不存储数据无法分享</p>
+              </div>
+            ) : (
+              <Button type="primary" onClick={this.handleBack}>
+                获取你自己的报告
+              </Button>
+            )}
           </div>
         ) : null}
       </StyleRoot>

@@ -50,7 +50,7 @@ class Page2 extends Component {
               <p style={styles.fadeInUp2s}>
                 通过GitHub向
                 <span className="stress">{this.props.info.repoNums}</span>
-                个代码仓库
+                个代码仓库的主分支
               </p>
             ) : (
               <p style={styles.fadeInUp2s}>在本地通过多个代码仓库</p>

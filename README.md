@@ -29,7 +29,7 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 
 > 特指仓库上显示的主要语言
 
-通过GitHub向n个代码仓库
+通过GitHub向n个代码仓库的主分支
 
 > 有提交的仓库，不限于自己的
 
@@ -42,6 +42,9 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 > GitHub下方的热力图
 
 ### 2.
+
+与此同时
+在你的敲击下
 
 增加了n行代码<br/>
 删除了n行代码<br/>

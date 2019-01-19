@@ -53,6 +53,10 @@ class Page1 extends Component {
     });
   };
 
+  handleUnsubscribe = () => {
+    window.location.href = 'https://github.com/guanpengchn/github-annual-report/issues/1';
+  }
+
   handleBack = () => {
     window.location.href = '/';
   };
@@ -91,7 +95,7 @@ class Page1 extends Component {
               <Alert
                 className="saveSuccess"
                 message="数据存储成功"
-                description="可使用当前软件的分享功能进行分享，记得进入项目页面，点击下方的Unsubscribe按钮，以防邮件提醒"
+                description="可使用当前软件的分享功能进行分享，记得“取消邮件提醒”，点击下方按钮进入Issue界面后，滑到最下方点击Unsubscribe"
                 type="success"
                 banner
                 closable
@@ -99,7 +103,7 @@ class Page1 extends Component {
               />
             ) : null}
             <p style={styles.fadeInUp1s} className="mb5">
-              欢迎关注项目：<a href="https://github.com/guanpengchn/github-annual-report/issues/1">github-annual-report</a>
+              欢迎关注项目：<a href="https://github.com/guanpengchn/github-annual-report">github-annual-report</a>
             </p>
             <p style={styles.fadeInUp1s} className="mb5">
               欢迎关注公众号：牧码咯
@@ -111,6 +115,9 @@ class Page1 extends Component {
                 <span className="stress mb5">注意！！！</span>
                 <Button className="mb5" type="primary" onClick={this.handleShare}>
                   点击此处存数据后分享
+                </Button>
+                <Button className="mb5" type="primary" onClick={this.handleUnsubscribe}>
+                  点击此处取消提醒
                 </Button>
                 <p>项目纯前端，不存储数据无法分享</p>
               </div>

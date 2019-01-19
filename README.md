@@ -1,6 +1,6 @@
 ## 简介
 
-GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年度代码报告，所有代码均部署在 GitHub Page 上，无安全风险，欢迎来领取你的 [GitHub 2018年度代码报告](https://githubreport.github.io/)。
+GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取用户2018年的仓库和提交情况，进行进一步的分析，得出 GitHub 年度代码报告，所有代码均部署在 GitHub Page 上，无安全风险，欢迎来领取你的 [GitHub 2018年度代码报告](https://githubreport.github.io/)，建议移动端观看。
 
 ## 说明
 

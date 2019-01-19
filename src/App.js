@@ -11,6 +11,7 @@ import {
   OWNER,
   REPO,
   OTHER,
+  INFO,
   BG1,
   BG2,
   WECHAT,
@@ -52,21 +53,30 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.timerID = setInterval(() => this.tick(), 5000);
+    this.timer1 = setInterval(() => this.tick1(), 5000);
+    this.timer2 = setInterval(() => this.tick2(), 21000);
   }
 
   componentWillUnmount() {
-    clearInterval(this.timerID);
+    clearInterval(this.timer1);
+    clearInterval(this.timer2);
   }
 
-  tick() {
+  tick1() {
     if (this.state.fineshedRequest === this.state.requestNums) {
-      clearInterval(this.timerID);
+      clearInterval(this.timer1);
+      clearInterval(this.timer2);
     } else {
       this.setState({
         status: `请求完成比：${this.state.fineshedRequest}/${this.state.requestNums}`,
       });
     }
+  }
+
+  tick2() {
+    this.setState({
+      status: `如长时间请求无变化，请刷新或更换浏览器`,
+    });
   }
 
   // 权限和路由参数处理
@@ -79,27 +89,41 @@ class App extends Component {
       if (query.username) {
         // 将Token交给Octokit
         this.authenticate();
-        const isExisted = await this.fetchComments(query.username);
-        // 如果GitHub上不存在数据
-        if (!isExisted) {
-          this.setState({ status: '缓存数据不存在', fineshedRequest: this.state.fineshedRequest + 1 });
-          // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
-          if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
-            await this.calc();
-            console.log(this.repos);
-            console.log(this.info);
+        // 对于用户点出链接然后又返回的
+        if (localStorage.getItem(INFO)) {
+          try {
+            this.info = JSON.parse(localStorage.getItem(INFO));
+          } catch (e) {
+            this.state.failed = true;
+          }
+          this.info.specialDay.date = new Date(this.info.specialDay.date);
+          this.info.latestDay.date = new Date(this.info.latestDay.date);
+          this.state.status = '缓存读取成功';
+          this.state.loding = false;
+          this.state.firstPage = false;
+        } else {
+          const isExisted = await this.fetchComments(query.username);
+          // 如果GitHub上不存在数据
+          if (!isExisted) {
+            this.setState({ status: '缓存数据不存在', fineshedRequest: this.state.fineshedRequest + 1 });
+            // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
+            if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
+              await this.calc();
+              console.log(this.repos);
+              console.log(this.info);
+              this.setState({ loading: false, firstPage: false });
+            }
+            // 不一致则无法获取数据
+            else {
+              this.setState({ loading: false, viewOtherNot: true });
+              localStorage.setItem(OTHER, '');
+            }
+          }
+          // 如果存在数据
+          else {
+            this.setState({ status: '缓存读取成功' });
             this.setState({ loading: false, firstPage: false });
           }
-          // 不一致则无法获取数据
-          else {
-            this.setState({ loading: false, viewOtherNot: true });
-            localStorage.setItem(OTHER, '');
-          }
-        }
-        // 如果存在数据
-        else {
-          this.setState({ status: '缓存读取成功' });
-          this.setState({ loading: false, firstPage: false });
         }
       }
       // 存在code说明是在认证
@@ -166,6 +190,7 @@ class App extends Component {
     analysisSingle(this.repos);
     this.setState({ status: '正在生成报告...' });
     analysisInfo(this.info, this.repos);
+    localStorage.setItem(INFO, JSON.stringify(this.info));
     this.setState({ status: '报告生成完毕！' });
   };
 
@@ -272,11 +297,15 @@ class App extends Component {
     let events;
     let eventOver = false;
     let eventPage = 1;
-    const hashObject = {}
+    const hashObject = {};
     this.info.eventNums = 0;
     do {
       this.setState({ status: '正在获取Event', requestNums: this.state.requestNums + 1 });
-      events = await this.octokit.activity.listPublicEventsForUser({ username: localStorage.getItem(USERNAME), per_page: this.per_page, page: eventPage });
+      events = await this.octokit.activity.listPublicEventsForUser({
+        username: localStorage.getItem(USERNAME),
+        per_page: this.per_page,
+        page: eventPage,
+      });
       if (events.status !== STATUS.OK) {
         this.setState({ failed: true });
         return;
@@ -293,8 +322,8 @@ class App extends Component {
         if (created_at.getTime() >= this.y2019.getTime()) {
           continue;
         }
-        const key = created_at.getTime()
-        if(key in hashObject) {
+        const key = created_at.getTime();
+        if (key in hashObject) {
           continue;
         } else {
           hashObject[key] = true;
@@ -304,9 +333,9 @@ class App extends Component {
       this.setState({ status: `第${eventPage}页Event获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       eventPage++;
     } while (events.data.length === this.per_page && !eventOver);
-    this.info.eventNums =Object.keys(hashObject).length;
+    this.info.eventNums = Object.keys(hashObject).length;
     this.setState({ status: 'Event获取成功' });
-  }
+  };
 
   //  获取仓库信息
   fetchRepo = async () => {

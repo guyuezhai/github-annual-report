@@ -6,6 +6,7 @@ export const ACCESS_TOKEN = 'ACCESS_TOKEN';
 export const USERNAME = 'USERNAME';
 export const AVATAR = 'AVATAR';
 export const OTHER = 'OTHER';
+export const INFO = 'INFO';
 export const PROXY = 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token';
 export const STATUS = {
   OK: 200,

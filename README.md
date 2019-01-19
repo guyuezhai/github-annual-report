@@ -6,10 +6,11 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 
 - 由于项目是纯前端代码，所以数据存储设计在了GitHub Issue中，这是份儿公开的数据库
 - 对项目有其他问题请发起新的Issue，**不要在数据库Issue中评论或者@他人**
-- 存储数据后才可在其他软件中（如微信）分享链接
+- **存储数据后才可在其他软件中（如微信）分享链接**，否则其他人无法找到你的数据
 - 存储数据后请去数据库Issue中点击**右下方（或下方）的Unsubscribe按钮**，以防邮件提醒
-- Issue中可以随时删除评论数据，否则其他人无法找到你的数据
-- 只统计公开仓库，不会存在数据安全问题
+- Issue中可以随时删除评论数据
+- **代码开源，网站开放，数据库开放，只统计公开仓库，不会存在数据安全问题**
+- 由于实时分析的瓶颈在于网络请求，**默认每个repo只分析master分支**
 
 ## 主要依赖
 
@@ -140,7 +141,6 @@ $ yarn deploy // 部署
 
 ![](https://github.com/guanpengchn/Figure/raw/master/github-annual-report.png)
 
-
 ## 数据结构
 
 ```js
@@ -149,6 +149,7 @@ ACCESS_TOKEN = '452df45345dsfg46'
 USERNAME = 'test'
 AVATAR = 'http://test.com/test.jpg'
 OTHER = 'test2'
+INFO = JSON.stringify(this.info)
 ```
 
 ```js
@@ -262,6 +263,8 @@ this.info = {
 }
 ```
 
-## 欢迎关注
+## 欢迎关注公众号：牧码咯
+
+更多有趣的编程信息等待你
 
 ![](https://github.com/guanpengchn/Figure/raw/master/wechat.jpg)

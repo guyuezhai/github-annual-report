@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { TIMEOUT } from './constant'
 
 export const utf8ToB64 = (str) => {
   return window.btoa(unescape(encodeURIComponent(str)))
@@ -57,3 +58,15 @@ export const compareLate = (latest, current) => {
   }
   return latest;
 };
+
+// 对每个API请求增加超时机制
+export const timeout = (octokitPromise) => {
+  return Promise.race([
+    octokitPromise,
+    new Promise(function(resolve, reject) {
+      setTimeout(() => reject(new Error('request timeout')), TIMEOUT);
+    }),
+  ]).catch((e)=>{
+    console.log(octokitPromise)
+  });
+}

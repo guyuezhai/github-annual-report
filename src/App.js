@@ -16,8 +16,14 @@ import {
   BG2,
   WECHAT,
   MUSIC,
+  TIPS1_TIME,
+  TIPS2_TIME,
+  PER_PAGE,
+  ISSUE_NUM,
+  YEAR_2018,
+  YEAR_2019,
 } from './utils/constant';
-import { queryParse, axiosJSON } from './utils/helper';
+import { queryParse, axiosJSON, timeout } from './utils/helper';
 import Octokit from '@octokit/rest';
 import Alert from 'antd/lib/alert';
 import Button from 'antd/lib/button';
@@ -40,21 +46,18 @@ class App extends Component {
       status: '正在读取数据...',
       requestNums: 0,
       fineshedRequest: 0,
+      failedRequest: 0,
     };
     this.octokit = new Octokit();
     this.repos = {};
     this.info = {};
-    this.y2018 = new Date('2018-01-01');
-    this.y2019 = new Date('2019-01-01');
-    this.per_page = 100;
-    this.issueNum = 1;
 
     this.run();
   }
 
   componentDidMount() {
-    this.timer1 = setInterval(() => this.tick1(), 5000);
-    this.timer2 = setInterval(() => this.tick2(), 21000);
+    this.timer1 = setInterval(() => this.tips1(), TIPS1_TIME);
+    this.timer2 = setInterval(() => this.tips2(), TIPS2_TIME);
   }
 
   componentWillUnmount() {
@@ -62,18 +65,18 @@ class App extends Component {
     clearInterval(this.timer2);
   }
 
-  tick1() {
+  tips1() {
     if (this.state.fineshedRequest === this.state.requestNums) {
       clearInterval(this.timer1);
       clearInterval(this.timer2);
     } else {
       this.setState({
-        status: `请求完成比：${this.state.fineshedRequest}/${this.state.requestNums}`,
+        status: `请求完成比：${this.state.fineshedRequest}/${this.state.requestNums}，失败：${this.state.failedRequest}`,
       });
     }
   }
 
-  tick2() {
+  tips2() {
     this.setState({
       status: `如长时间请求无变化，请刷新或更换浏览器`,
     });
@@ -90,14 +93,18 @@ class App extends Component {
         // 将Token交给Octokit
         this.authenticate();
         // 对于用户点出链接然后又返回的
-        if (localStorage.getItem(INFO)) {
+        if (localStorage.getItem(INFO) && localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
           try {
             this.info = JSON.parse(localStorage.getItem(INFO));
           } catch (e) {
             this.state.failed = true;
           }
-          this.info.specialDay.date = new Date(this.info.specialDay.date);
-          this.info.latestDay.date = new Date(this.info.latestDay.date);
+          if (this.info.specialDay.date !== '') {
+            this.info.specialDay.date = new Date(this.info.specialDay.date);
+          }
+          if (this.info.latestDay.date !== '') {
+            this.info.latestDay.date = new Date(this.info.latestDay.date);
+          }
           this.state.status = '缓存读取成功';
           this.state.loding = false;
           this.state.firstPage = false;
@@ -236,15 +243,17 @@ class App extends Component {
     do {
       this.state.status = '正在读取缓存';
       this.state.requestNums = this.state.requestNums + 1;
-      comments = await this.octokit.issues.listComments({
-        owner: OWNER,
-        repo: REPO,
-        number: this.issueNum,
-        per_page: this.per_page,
-        page: commentsPage,
-      });
-      if (comments.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      comments = await timeout(
+        this.octokit.issues.listComments({
+          owner: OWNER,
+          repo: REPO,
+          number: ISSUE_NUM,
+          per_page: PER_PAGE,
+          page: commentsPage,
+        })
+      );
+      if (!comments || comments.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       for (const comment of comments.data) {
@@ -254,23 +263,27 @@ class App extends Component {
           } catch (e) {
             this.setState({ failed: true });
           }
-          this.info.specialDay.date = new Date(this.info.specialDay.date);
-          this.info.latestDay.date = new Date(this.info.latestDay.date);
+          if (this.info.specialDay.date !== '') {
+            this.info.specialDay.date = new Date(this.info.specialDay.date);
+          }
+          if (this.info.latestDay.date !== '') {
+            this.info.latestDay.date = new Date(this.info.latestDay.date);
+          }
           commentsExist = true;
           break;
         }
       }
       commentsPage++;
-    } while (comments.data.length === this.per_page && !commentsExist);
+    } while (comments.data.length === PER_PAGE && !commentsExist);
     return commentsExist;
   };
 
   fetchUser = async () => {
     this.setState({ status: '正在获取用户信息', requestNums: this.state.requestNums + 1 });
     // 获取用户名和头像
-    const userInfo = await this.octokit.users.getAuthenticated();
-    if (userInfo.status !== STATUS.OK) {
-      this.setState({ failed: true });
+    const userInfo = await timeout(this.octokit.users.getAuthenticated());
+    if (!userInfo || userInfo.status !== STATUS.OK) {
+      this.setState({ failedRequest: this.state.failedRequest + 1, status: '用户信息获取失败' });
       return;
     }
     localStorage.setItem(USERNAME, userInfo.data.login);
@@ -301,25 +314,27 @@ class App extends Component {
     this.info.eventNums = 0;
     do {
       this.setState({ status: '正在获取Event', requestNums: this.state.requestNums + 1 });
-      events = await this.octokit.activity.listPublicEventsForUser({
-        username: localStorage.getItem(USERNAME),
-        per_page: this.per_page,
-        page: eventPage,
-      });
-      if (events.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      events = await timeout(
+        this.octokit.activity.listPublicEventsForUser({
+          username: localStorage.getItem(USERNAME),
+          per_page: PER_PAGE,
+          page: eventPage,
+        })
+      );
+      if (!events || events.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       // 遍历所有活动
       for (const event of events.data) {
         const created_at = new Date(event.created_at);
         // 活动时间小于2018年，因为降序排列，所以后序活动不需遍历
-        if (created_at.getTime() <= this.y2018.getTime()) {
+        if (created_at.getTime() <= YEAR_2018.getTime()) {
           eventOver = true;
           break;
         }
         // 仓库创建时间大于2019年，跳过遍历下一个仓库
-        if (created_at.getTime() >= this.y2019.getTime()) {
+        if (created_at.getTime() >= YEAR_2019.getTime()) {
           continue;
         }
         const key = created_at.getTime();
@@ -332,7 +347,7 @@ class App extends Component {
       this.info.eventNums += events.data.length;
       this.setState({ status: `第${eventPage}页Event获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       eventPage++;
-    } while (events.data.length === this.per_page && !eventOver);
+    } while (events.data.length === PER_PAGE && !eventOver);
     this.info.eventNums = Object.keys(hashObject).length;
     this.setState({ status: 'Event获取成功' });
   };
@@ -347,9 +362,9 @@ class App extends Component {
     let repoOver = false;
     do {
       this.setState({ status: '正在获取仓库', requestNums: this.state.requestNums + 1 });
-      repos = await this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: this.per_page, page: repoPage });
-      if (repos.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      repos = await timeout(this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: PER_PAGE, page: repoPage }));
+      if (!repos || repos.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       // 遍历所有仓库
@@ -357,23 +372,23 @@ class App extends Component {
         const created_at = new Date(repo.created_at);
         const pushed_at = new Date(repo.pushed_at);
         // 仓库最新push时间小于2018年，因为最新push时间降序排列，所以后序仓库不需遍历
-        if (pushed_at.getTime() <= this.y2018.getTime()) {
+        if (pushed_at.getTime() <= YEAR_2018.getTime()) {
           repoOver = true;
           break;
         }
         // 仓库创建时间大于2019年，跳过遍历下一个仓库
-        if (created_at.getTime() >= this.y2019.getTime()) {
+        if (created_at.getTime() >= YEAR_2019.getTime()) {
           continue;
         }
         // 仓库创建时间小于2019年 且 仓库最新push时间大于2018年，则该仓库有可能存在2018年的提交记录
-        if (created_at.getTime() < this.y2019.getTime() && pushed_at.getTime() > this.y2018.getTime()) {
+        if (created_at.getTime() < YEAR_2019.getTime() && pushed_at.getTime() > YEAR_2018.getTime()) {
           // 不阻塞，继续下一个仓库，保存Promise
           promiseArr.push(this.fetchCommits(repo));
         }
       }
       this.setState({ status: `第${repoPage}页仓库获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       repoPage++;
-    } while (repos.data.length === this.per_page && !repoOver);
+    } while (repos.data.length === PER_PAGE && !repoOver);
     // 等待全部异步请求结束
     await Promise.all(promiseArr);
     this.setState({ status: `仓库获取成功` });
@@ -386,21 +401,23 @@ class App extends Component {
     this.info.issueNums = 0;
     do {
       this.setState({ status: '正在获取Issue', requestNums: this.state.requestNums + 1 });
-      issues = await this.octokit.issues.list({
-        filter: 'all',
-        state: 'all',
-        since: this.y2018.toISOString(),
-        per_page: this.per_page,
-        page: issuePage,
-      });
-      if (issues.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      issues = await timeout(
+        this.octokit.issues.list({
+          filter: 'all',
+          state: 'all',
+          since: YEAR_2018.toISOString(),
+          per_page: PER_PAGE,
+          page: issuePage,
+        })
+      );
+      if (!issues || issues.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       this.info.issueNums += issues.data.length;
       this.setState({ status: `第${issuePage}页Issue获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       issuePage++;
-    } while (issues.data.length === this.per_page);
+    } while (issues.data.length === PER_PAGE);
     this.setState({ status: 'Issue获取成功' });
   };
 
@@ -411,15 +428,17 @@ class App extends Component {
     this.info.starNums = 0;
     do {
       this.setState({ status: '正在获取Star', requestNums: this.state.requestNums + 1 });
-      stars = await this.octokit.activity.listReposStarredByAuthenticatedUser({ sort: 'created', per_page: this.per_page, page: starPage });
-      if (stars.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      stars = await timeout(
+        this.octokit.activity.listReposStarredByAuthenticatedUser({ sort: 'created', per_page: PER_PAGE, page: starPage })
+      );
+      if (!stars || stars.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       this.info.starNums += stars.data.length;
       this.setState({ status: `第${starPage}页Star获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       starPage++;
-    } while (stars.data.length === this.per_page);
+    } while (stars.data.length === PER_PAGE);
     this.setState({ status: 'Star获取成功' });
   };
 
@@ -441,27 +460,29 @@ class App extends Component {
     // 分页，取出当前仓库2018-2019年的全部提交
     do {
       this.setState({ status: `正在获取${repo.name}的Commit`, requestNums: this.state.requestNums + 1 });
-      commits = await this.octokit.repos.listCommits({
-        owner: repo.owner.login,
-        repo: repo.name,
-        per_page: this.per_page,
-        page: commitPage,
-        since: this.y2018.toISOString(),
-        until: this.y2019.toISOString(),
-      });
-      if (commits.status !== STATUS.OK) {
-        this.setState({ failed: true });
+      commits = await timeout(
+        this.octokit.repos.listCommits({
+          owner: repo.owner.login,
+          repo: repo.name,
+          per_page: PER_PAGE,
+          page: commitPage,
+          since: YEAR_2018.toISOString(),
+          until: YEAR_2019.toISOString(),
+        })
+      );
+      if (!commits || commits.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
       }
       for (const commit of commits.data) {
         const currentDate = new Date(commit.commit.committer.date);
         // 提交时间小于2018年，因为提交时间降序排列，所以后序提交不需遍历
-        if (currentDate.getTime() <= this.y2018.getTime()) {
+        if (currentDate.getTime() <= YEAR_2018.getTime()) {
           commitOver = true;
           break;
         }
         // 提交时间大于2019年，跳过遍历下一次提交
-        if (currentDate.getTime() >= this.y2019.getTime()) {
+        if (currentDate.getTime() >= YEAR_2019.getTime()) {
           continue;
         }
         // 提交人和当前用户一致 且 提交时间在2018——2019年之间，则放入提交时间
@@ -477,7 +498,7 @@ class App extends Component {
       }
       this.setState({ status: `${repo.name}的第${commitPage}页Commit获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       commitPage++;
-    } while (commits.data.length === this.per_page && !commitOver);
+    } while (commits.data.length === PER_PAGE && !commitOver);
     // 2018年存在提交记录则将该仓库加入
     if (currentRepo.commitTime.length > 0) {
       this.repos.push(currentRepo);
@@ -488,9 +509,9 @@ class App extends Component {
   // 获取单个提交记录
   fetchSingleCommit = async (currentRepo, repo, owner, sha) => {
     this.setState({ requestNums: this.state.requestNums + 1 });
-    const commit = await this.octokit.repos.getCommit({ owner, repo, sha });
-    if (commit.status !== STATUS.OK) {
-      this.setState({ failed: true });
+    const commit = await timeout(this.octokit.repos.getCommit({ owner, repo, sha }));
+    if (!commit || commit.status !== STATUS.OK) {
+      this.setState({ failedRequest: this.state.failedRequest + 1 });
       return;
     }
     currentRepo.addLines += commit.data.stats.additions;
@@ -500,7 +521,8 @@ class App extends Component {
   };
 
   fetchToken = async code => {
-    this.setState({ status: `正在获取Token`, requestNums: this.state.requestNums + 1 });
+    this.state.status = `正在获取Token`;
+    this.state.requestNums = this.state.requestNums + 1;
     const res = await axiosJSON.post(PROXY, {
       code,
       client_id: CLIENT_ID,

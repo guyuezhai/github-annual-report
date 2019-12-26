@@ -21,5 +21,5 @@ export const TIPS1_TIME = 5000;
 export const TIPS2_TIME = 21000;
 export const PER_PAGE = 100;
 export const ISSUE_NUM = 1;
-export const YEAR_2018 = new Date('2018-01-01');
-export const YEAR_2019 = new Date('2019-01-01');
+export const YEAR_START = new Date('2019-01-01');
+export const YEAR_END = new Date('2020-01-01');

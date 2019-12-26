@@ -20,8 +20,8 @@ import {
   TIPS2_TIME,
   PER_PAGE,
   ISSUE_NUM,
-  YEAR_2018,
-  YEAR_2019,
+  YEAR_START,
+  YEAR_END,
 } from './utils/constant';
 import { queryParse, axiosJSON, timeout } from './utils/helper';
 import Octokit from '@octokit/rest';
@@ -328,13 +328,13 @@ class App extends Component {
       // 遍历所有活动
       for (const event of events.data) {
         const created_at = new Date(event.created_at);
-        // 活动时间小于2018年，因为降序排列，所以后序活动不需遍历
-        if (created_at.getTime() <= YEAR_2018.getTime()) {
+        // 活动时间小于2019年，因为降序排列，所以后序活动不需遍历
+        if (created_at.getTime() <= YEAR_START.getTime()) {
           eventOver = true;
           break;
         }
         // 仓库创建时间大于2019年，跳过遍历下一个仓库
-        if (created_at.getTime() >= YEAR_2019.getTime()) {
+        if (created_at.getTime() >= YEAR_END.getTime()) {
           continue;
         }
         const key = created_at.getTime();
@@ -359,10 +359,9 @@ class App extends Component {
     this.repos = [];
     let repos;
     let repoPage = 1;
-    let repoOver = false;
     do {
       this.setState({ status: '正在获取仓库', requestNums: this.state.requestNums + 1 });
-      repos = await timeout(this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: PER_PAGE, page: repoPage }));
+      repos = await timeout(this.octokit.activity.listWatchedReposForAuthenticatedUser({ per_page: PER_PAGE, page: repoPage }));
       if (!repos || repos.status !== STATUS.OK) {
         this.setState({ failedRequest: this.state.failedRequest + 1 });
         return;
@@ -371,24 +370,19 @@ class App extends Component {
       for (const repo of repos.data) {
         const created_at = new Date(repo.created_at);
         const pushed_at = new Date(repo.pushed_at);
-        // 仓库最新push时间小于2018年，因为最新push时间降序排列，所以后序仓库不需遍历
-        if (pushed_at.getTime() <= YEAR_2018.getTime()) {
-          repoOver = true;
-          break;
-        }
         // 仓库创建时间大于2019年，跳过遍历下一个仓库
-        if (created_at.getTime() >= YEAR_2019.getTime()) {
+        if (created_at.getTime() >= YEAR_END.getTime()) {
           continue;
         }
-        // 仓库创建时间小于2019年 且 仓库最新push时间大于2018年，则该仓库有可能存在2018年的提交记录
-        if (created_at.getTime() < YEAR_2019.getTime() && pushed_at.getTime() > YEAR_2018.getTime()) {
+        // 仓库创建时间小于2019年 且 仓库最新push时间大于2019年，则该仓库有可能存在2019年的提交记录
+        if (created_at.getTime() < YEAR_END.getTime() && pushed_at.getTime() > YEAR_START.getTime()) {
           // 不阻塞，继续下一个仓库，保存Promise
           promiseArr.push(this.fetchCommits(repo));
         }
       }
       this.setState({ status: `第${repoPage}页仓库获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       repoPage++;
-    } while (repos.data.length === PER_PAGE && !repoOver);
+    } while (repos.data.length === PER_PAGE);
     // 等待全部异步请求结束
     await Promise.all(promiseArr);
     this.setState({ status: `仓库获取成功` });
@@ -405,7 +399,7 @@ class App extends Component {
         this.octokit.issues.list({
           filter: 'all',
           state: 'all',
-          since: YEAR_2018.toISOString(),
+          since: YEAR_START.toISOString(),
           per_page: PER_PAGE,
           page: issuePage,
         })
@@ -457,17 +451,18 @@ class App extends Component {
     let commits;
     let commitPage = 1;
     let commitOver = false;
-    // 分页，取出当前仓库2018-2019年的全部提交
+    // 分页，取出当前仓库2019-2020年的全部提交
     do {
       this.setState({ status: `正在获取${repo.name}的Commit`, requestNums: this.state.requestNums + 1 });
       commits = await timeout(
         this.octokit.repos.listCommits({
           owner: repo.owner.login,
           repo: repo.name,
+          author: localStorage.getItem(USERNAME),
           per_page: PER_PAGE,
           page: commitPage,
-          since: YEAR_2018.toISOString(),
-          until: YEAR_2019.toISOString(),
+          since: YEAR_START.toISOString(),
+          until: YEAR_END.toISOString(),
         })
       );
       if (!commits || commits.status !== STATUS.OK) {
@@ -476,16 +471,16 @@ class App extends Component {
       }
       for (const commit of commits.data) {
         const currentDate = new Date(commit.commit.committer.date);
-        // 提交时间小于2018年，因为提交时间降序排列，所以后序提交不需遍历
-        if (currentDate.getTime() <= YEAR_2018.getTime()) {
+        // 提交时间小于2019年，因为提交时间降序排列，所以后序提交不需遍历
+        if (currentDate.getTime() <= YEAR_START.getTime()) {
           commitOver = true;
           break;
         }
         // 提交时间大于2019年，跳过遍历下一次提交
-        if (currentDate.getTime() >= YEAR_2019.getTime()) {
+        if (currentDate.getTime() >= YEAR_END.getTime()) {
           continue;
         }
-        // 提交人和当前用户一致 且 提交时间在2018——2019年之间，则放入提交时间
+        // 提交人和当前用户一致 且 提交时间在2019——2020年之间，则放入提交时间
         if (
           (commit.committer && commit.committer.login === localStorage.getItem(USERNAME)) ||
           (commit.commit.committer && commit.commit.committer.name === localStorage.getItem(USERNAME))
@@ -499,7 +494,7 @@ class App extends Component {
       this.setState({ status: `${repo.name}的第${commitPage}页Commit获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       commitPage++;
     } while (commits.data.length === PER_PAGE && !commitOver);
-    // 2018年存在提交记录则将该仓库加入
+    // 2019年存在提交记录则将该仓库加入
     if (currentRepo.commitTime.length > 0) {
       this.repos.push(currentRepo);
     }
@@ -565,7 +560,7 @@ class App extends Component {
     } else if (this.state.viewOther) {
       firstPage = (
         <div className="header">
-          <p>想看其他人2018年度GitHub代码报告么？</p>
+          <p>想看其他人2019年度GitHub代码报告么？</p>
           <p>请先登录</p>
           <Button className="login" type="primary" onClick={this.login}>
             <GitHub className="github" />
@@ -587,7 +582,7 @@ class App extends Component {
     } else {
       firstPage = (
         <div className="header">
-          <p>想看自己2018年度GitHub代码报告么？</p>
+          <p>想看自己2019年度GitHub代码报告么？</p>
           <p>请先登录</p>
           <Button className="login" type="primary" onClick={this.login}>
             <GitHub className="github" />

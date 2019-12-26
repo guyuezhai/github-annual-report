@@ -34,7 +34,7 @@ class Page1 extends Component {
   handleShare = () => {
     const confirm = Modal.confirm;
     confirm({
-      title: '确认分享你的2018么？',
+      title: '确认分享你的2019么？',
       content: '确定后信息将公开在GitHub中，可再使用当前软件的分享功能进行分享',
       cancelText: '取消',
       okText: '确定',
@@ -106,7 +106,7 @@ class Page1 extends Component {
               欢迎关注项目：<a href="https://github.com/guanpengchn/github-annual-report">github-annual-report</a>
             </p>
             <p style={styles.fadeInUp1s} className="mb5">
-              欢迎关注公众号：牧码咯
+              欢迎关注公众号：牧码啦
             </p>
             <p style={styles.fadeInUp1s} className="mb5" />
             <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />

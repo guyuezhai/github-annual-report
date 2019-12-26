@@ -34,7 +34,7 @@ class Page1 extends Component {
           <div className="page">
           <Talk className="mb20"/>
             <p style={styles.fadeInUp1s}>作为社区的一员</p>
-            <p style={styles.fadeInUp1_5s}>2018年</p>
+            <p style={styles.fadeInUp1_5s}>2019 年</p>
             {this.props.info.issueNums !== 0 ? (
               <p style={styles.fadeInUp2s}>
                 你参与了<span className="stress">{this.props.info.issueNums}</span>个问题的讨论

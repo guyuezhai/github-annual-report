@@ -134,7 +134,6 @@ class App extends Component {
       // 根路径
       else {
         this.state.loading = false;
-        window.location.href = `/`;
       }
     }
   };
@@ -469,7 +468,7 @@ class App extends Component {
     currentRepo.addLines += commit.data.stats.additions;
     currentRepo.deleteLines += commit.data.stats.deletions;
     currentRepo.totalLines += commit.data.stats.additions + commit.data.stats.deletions;
-    this.setState({ fineshedRequest: this.state.fineshedRequest + 1 });
+    this.setState({ status: `${repo}的提交${commit.data.sha.substr(0, 6)}获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
   };
 
   fetchToken = async code => {

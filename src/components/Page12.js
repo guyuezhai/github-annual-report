@@ -113,7 +113,7 @@ class Page1 extends Component {
               欢迎关注公众号：<strong>牧码啦</strong>
             </p>
             <p style={styles.fadeInUp1s} className="mb5">
-              回复「<strong>报告</strong>」查看报告含义
+              回复「<strong>报告</strong>」查看详细解释
             </p>
             <p style={styles.fadeInUp1s} className="mb5">
               还有算法群、高清电子书等福利

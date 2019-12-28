@@ -14,6 +14,7 @@ import {
   BG2,
   WECHAT,
   MUSIC,
+  QRCODE,
   TIPS1_TIME,
   TIPS2_TIME,
   PER_PAGE,
@@ -162,6 +163,7 @@ class App extends Component {
     this.fetchImage(BG1);
     this.fetchImage(BG2);
     this.fetchImage(WECHAT);
+    this.fetchImage(QRCODE);
     this.fetchAudio(MUSIC);
   };
 

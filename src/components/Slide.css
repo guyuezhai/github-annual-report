@@ -91,3 +91,13 @@ img {
    1px 1px 5px rgb(168, 81, 0);
   width: 200px;
 }
+
+.qrcode {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  z-index: 100;
+  box-shadow: none;
+}

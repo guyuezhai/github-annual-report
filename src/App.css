@@ -50,3 +50,13 @@
   bottom: 8%;
   width: 100%;
 }
+
+.qrcode {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  z-index: 100;
+  box-shadow: none;
+}

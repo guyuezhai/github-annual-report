@@ -25,9 +25,13 @@ class Slide extends Component {
       page: 0,
     };
     // 微信
-    document.addEventListener("WeixinJSBridgeReady", function () {
-      document.getElementById('audio_player').play();
-  },false);
+    document.addEventListener(
+      'WeixinJSBridgeReady',
+      function() {
+        document.getElementById('audio_player').play();
+      },
+      false
+    );
   }
 
   render() {
@@ -82,6 +86,9 @@ class Slide extends Component {
     return (
       <div className="Slide">
         <StyleRoot>
+          {this.state.page === 1 ? null : (
+            <img className="qrcode" alt="图片未加载成功" src="https://githubreport.oss-cn-beijing.aliyuncs.com/qrcode.png" />
+          )}
           <audio id="audio_player" autoPlay="autoplay">
             <source id="src_mp3" type="audio/mp3" src="http://githubreport.oss-cn-beijing.aliyuncs.com/music.mp3" />
           </audio>

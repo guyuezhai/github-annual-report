@@ -15,6 +15,7 @@ export const STATUS = {
 export const BG1 = 'http://githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg';
 export const BG2 = 'http://githubreport.oss-cn-beijing.aliyuncs.com/bg2.jpg';
 export const WECHAT = 'http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg';
+export const QRCODE = 'https://githubreport.oss-cn-beijing.aliyuncs.com/qrcode.png';
 export const MUSIC = 'http://githubreport.oss-cn-beijing.aliyuncs.com/music.mp3';
 export const TIMEOUT = 15000;
 export const TIPS1_TIME = 5000;

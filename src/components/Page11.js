@@ -44,6 +44,7 @@ class Page1 extends Component {
               <li style={styles.fadeInUp3s}>Typed.js</li>
               <li style={styles.fadeInUp3s}>...</li>
             </ul>
+            <h4 style={styles.fadeInUp3s}>特别鸣谢：@李锐</h4>
           </div>
         ) : null}
       </StyleRoot>

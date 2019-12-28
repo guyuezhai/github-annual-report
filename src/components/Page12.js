@@ -55,10 +55,14 @@ class Page1 extends Component {
 
   handleUnsubscribe = () => {
     window.location.href = 'https://github.com/guanpengchn/github-annual-report/issues/1';
-  }
+  };
 
   handleBack = () => {
     window.location.href = '/';
+  };
+
+  handleCalc = () => {
+    window.location.href = '/?isUpdate=true';
   };
 
   render() {
@@ -103,26 +107,32 @@ class Page1 extends Component {
               />
             ) : null}
             <p style={styles.fadeInUp1s} className="mb5">
-              欢迎关注项目：<a href="https://github.com/guanpengchn/github-annual-report">github-annual-report</a>
+              <strong>右上角分享到朋友圈</strong>
             </p>
             <p style={styles.fadeInUp1s} className="mb5">
-              欢迎关注公众号：牧码啦
+              欢迎关注公众号：<strong>牧码啦</strong>
+            </p>
+            <p style={styles.fadeInUp1s} className="mb5">
+              回复「<strong>报告</strong>」查看报告含义
+            </p>
+            <p style={styles.fadeInUp1s} className="mb5">
+              还有算法群、高清电子书等福利
             </p>
             <p style={styles.fadeInUp1s} className="mb5" />
             <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
+            <a
+              style={styles.fadeInUp1s}
+              className="mb20"
+              href="https://mp.weixin.qq.com/mp/homepage?__biz=MzU5MTcyOTQ5OA==&hid=2&sn=09be71572089b12ef449524eb7aa858a"
+            >
+              作者的精选文章
+            </a>
             {this.state.isSelf ? (
-              <div className="page">
-                <span className="stress mb5">注意！！！</span>
-                <Button className="mb5" type="primary" onClick={this.handleShare}>
-                  点击此处存数据后分享
-                </Button>
-                <Button className="mb5" type="primary" onClick={this.handleUnsubscribe}>
-                  点击此处取消提醒
-                </Button>
-                <p>项目纯前端，不存储数据无法分享</p>
-              </div>
+              <Button className="mb5" type="primary" onClick={this.handleCalc}>
+                报告不准想重新计算
+              </Button>
             ) : (
-              <Button type="primary" onClick={this.handleBack}>
+              <Button className="mb5" type="primary" onClick={this.handleBack}>
                 获取你自己的报告
               </Button>
             )}

@@ -10,8 +10,6 @@ import {
   STATUS,
   OWNER,
   REPO,
-  OTHER,
-  INFO,
   BG1,
   BG2,
   WECHAT,
@@ -22,6 +20,7 @@ import {
   ISSUE_NUM,
   YEAR_START,
   YEAR_END,
+  SERVER,
 } from './utils/constant';
 import { queryParse, axiosJSON, timeout } from './utils/helper';
 import Octokit from '@octokit/rest';
@@ -41,8 +40,6 @@ class App extends Component {
       failed: false,
       loading: true,
       firstPage: true,
-      viewOther: false,
-      viewOtherNot: false,
       status: '正在读取数据...',
       requestNums: 0,
       fineshedRequest: 0,
@@ -87,82 +84,43 @@ class App extends Component {
     const token = localStorage.getItem(ACCESS_TOKEN);
     const query = queryParse();
     this.fetchAssets();
-    if (token) {
-      // 存在username说明是自己或者别人想看
-      if (query.username) {
-        // 将Token交给Octokit
-        this.authenticate();
-        // 对于用户点出链接然后又返回的
-        if (localStorage.getItem(INFO) && localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
-          try {
-            this.info = JSON.parse(localStorage.getItem(INFO));
-          } catch (e) {
-            this.state.failed = true;
-          }
-          if (this.info.specialDay.date !== '') {
-            this.info.specialDay.date = new Date(this.info.specialDay.date);
-          }
-          if (this.info.latestDay.date !== '') {
-            this.info.latestDay.date = new Date(this.info.latestDay.date);
-          }
-          this.state.status = '缓存读取成功';
-          this.state.loding = false;
-          this.state.firstPage = false;
-        } else {
-          const isExisted = await this.fetchComments(query.username);
-          // 如果GitHub上不存在数据
-          if (!isExisted) {
-            this.setState({ status: '缓存数据不存在', fineshedRequest: this.state.fineshedRequest + 1 });
-            // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
-            if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
-              await this.calc();
-              console.log(this.repos);
-              console.log(this.info);
-              this.setState({ loading: false, firstPage: false });
-            }
-            // 不一致则无法获取数据
-            else {
-              this.setState({ loading: false, viewOtherNot: true });
-              localStorage.setItem(OTHER, '');
-            }
-          }
-          // 如果存在数据
-          else {
-            this.setState({ status: '缓存读取成功' });
-            this.setState({ loading: false, firstPage: false });
-          }
+    // 本人想重新计算
+    if (query.isUpdate) {
+      this.authenticate();
+      await this.calc();
+      console.log(this.repos);
+      console.log(this.info);
+      this.setState({ loading: false, firstPage: false });
+    }
+    // 存在username说明是要看某个人的
+    if (query.username) {
+      const isExist = await this.getInfo(query.username);
+      // 如果服务器上不存在数据
+      if (!isExist) {
+        this.setState({ status: '该用户数据不存在', fineshedRequest: this.state.fineshedRequest + 1 });
+        // 存在认证用户名 并且 认证用户名和查询用户名相同，则调用API获取数据
+        if (localStorage.getItem(USERNAME) && localStorage.getItem(USERNAME) === query.username) {
+          this.authenticate();
+          await this.calc();
+          console.log(this.repos);
+          console.log(this.info);
+          this.setState({ loading: false, firstPage: false });
         }
-      }
-      // 存在code说明是在认证
-      else if (query.code) {
-        // localStorage保存了token
-        await this.fetchToken(query.code);
-        // 将Token交给Octokit
-        this.authenticate();
-        // localStorage保存了username和avatar
-        await this.fetchUser();
-        // 看其他人
-        if (localStorage.getItem(OTHER)) {
-          window.location.href = `/?username=${localStorage.getItem(OTHER)}`;
-        }
-        // 看自己
+        // 不一致则无法获取数据
         else {
-          window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
+          this.setState({ loading: false });
         }
       }
-      // 根路径
+      // 如果存在数据
       else {
-        localStorage.setItem(OTHER, '');
-        this.state.loading = false;
-        window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
-        return;
+        this.setState({ status: '数据读取成功' });
+        this.setState({ loading: false, firstPage: false });
       }
     } else {
-      // 存在username说明是在分享
-      if (query.username) {
-        this.state.loading = false;
-        this.state.viewOther = true;
-        localStorage.setItem(OTHER, query.username);
+      // 已经认证过
+      if (token) {
+        // 看自己
+        window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
       }
       // 存在code说明是在认证
       else if (query.code) {
@@ -172,18 +130,10 @@ class App extends Component {
         this.authenticate();
         // localStorage保存了username和avatar
         await this.fetchUser();
-        // 看其他人
-        if (localStorage.getItem(OTHER)) {
-          window.location.href = `/?username=${localStorage.getItem(OTHER)}`;
-        }
-        // 看自己
-        else {
-          window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
-        }
+        window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
       }
       // 根路径
       else {
-        localStorage.setItem(OTHER, '');
         this.state.loading = false;
       }
     }
@@ -197,7 +147,14 @@ class App extends Component {
     analysisSingle(this.repos);
     this.setState({ status: '正在生成报告...' });
     analysisInfo(this.info, this.repos);
-    localStorage.setItem(INFO, JSON.stringify(this.info));
+    // localStorage.setItem(INFO, JSON.stringify(this.info));
+    const req = {
+      username: localStorage.getItem(USERNAME),
+      avatar: localStorage.getItem(AVATAR),
+      info: JSON.stringify(this.info),
+      repo: JSON.stringify(this.repos),
+    };
+    this.addInfo(req);
     this.setState({ status: '报告生成完毕！' });
   };
 
@@ -263,10 +220,10 @@ class App extends Component {
           } catch (e) {
             this.setState({ failed: true });
           }
-          if (this.info.specialDay.date !== '') {
+          if (this.info && this.info.specialDay.date !== '') {
             this.info.specialDay.date = new Date(this.info.specialDay.date);
           }
-          if (this.info.latestDay.date !== '') {
+          if (this.info && this.info.latestDay.date !== '') {
             this.info.latestDay.date = new Date(this.info.latestDay.date);
           }
           commentsExist = true;
@@ -547,6 +504,34 @@ class App extends Component {
     this.setState({ failed: false });
   };
 
+  getInfo = async username => {
+    let isExist = false;
+    const res = await axiosJSON.get(SERVER + '/users/' + username);
+    const { data } = res.data;
+    if (data && data.username === username) {
+      try {
+        this.info = JSON.parse(data.info); //
+      } catch (e) {
+        this.setState({ failed: true });
+      }
+      if (this.info.specialDay.date !== '') {
+        this.info.specialDay.date = new Date(this.info.specialDay.date);
+      }
+      if (this.info.latestDay.date !== '') {
+        this.info.latestDay.date = new Date(this.info.latestDay.date);
+      }
+      isExist = true;
+    }
+    return isExist;
+  };
+
+  addInfo = async info => {
+    const res = await axiosJSON.post(SERVER + '/users', info);
+    if(res) {
+      this.setState({ status: '报告存储完毕！' });
+    }
+  };
+
   render() {
     let firstPage = null;
     const styles = {
@@ -557,28 +542,6 @@ class App extends Component {
     };
     if (this.state.loading) {
       firstPage = <Spin className="spin" size="large" tip={this.state.status} />;
-    } else if (this.state.viewOther) {
-      firstPage = (
-        <div className="header">
-          <p>想看其他人2019年度GitHub代码报告么？</p>
-          <p>请先登录</p>
-          <Button className="login" type="primary" onClick={this.login}>
-            <GitHub className="github" />
-            登录
-          </Button>
-        </div>
-      );
-    } else if (this.state.viewOtherNot) {
-      firstPage = (
-        <div className="header">
-          <p>他的报告不存在，欢迎邀请好友</p>
-          <p>登陆查看自己的报告</p>
-          <Button className="login" type="primary" onClick={this.login}>
-            <GitHub className="github" />
-            登录
-          </Button>
-        </div>
-      );
     } else {
       firstPage = (
         <div className="header">

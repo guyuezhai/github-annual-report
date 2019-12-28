@@ -81,7 +81,6 @@ class App extends Component {
 
   // 权限和路由参数处理
   run = async () => {
-    const token = localStorage.getItem(ACCESS_TOKEN);
     const query = queryParse();
     this.fetchAssets();
     // 本人想重新计算
@@ -118,7 +117,7 @@ class App extends Component {
       }
     } else {
       // 已经认证过
-      if (token) {
+      if (localStorage.getItem(ACCESS_TOKEN) && localStorage.getItem(USERNAME)) {
         // 看自己
         window.location.href = `/?username=${localStorage.getItem(USERNAME)}`;
       }
@@ -135,6 +134,7 @@ class App extends Component {
       // 根路径
       else {
         this.state.loading = false;
+        window.location.href = `/`;
       }
     }
   };
@@ -527,7 +527,7 @@ class App extends Component {
 
   addInfo = async info => {
     const res = await axiosJSON.post(SERVER + '/users', info);
-    if(res) {
+    if (res) {
       this.setState({ status: '报告存储完毕！' });
     }
   };

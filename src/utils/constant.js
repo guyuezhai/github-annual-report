@@ -9,7 +9,7 @@ export const AVATAR = 'AVATAR';
 export const OTHER = 'OTHER';
 export const INFO = 'INFO';
 export const PROXY = 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token';
-export const SERVER = 'http://140.143.204.228:8080';
+export const SERVER = 'https://githubreport-api.mdnice.com';
 export const STATUS = {
   OK: 200,
 };

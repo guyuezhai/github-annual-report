@@ -115,9 +115,13 @@ class Page1 extends Component {
             <p style={styles.fadeInUp1s} className="mb5">
               回复「<strong>报告</strong>」查看详细解释
             </p>
-            <p style={styles.fadeInUp1s} className="mb5">
-              还有算法群、高清电子书等福利
-            </p>
+            <a
+              style={styles.fadeInUp1s}
+              className="mb5"
+              href="https://github.com/guanpengchn/github-annual-report"
+            >
+              GitHub 地址，欢迎 Star
+            </a>
             <p style={styles.fadeInUp1s} className="mb5" />
             <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
             <a

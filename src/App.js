@@ -22,6 +22,7 @@ import {
   YEAR_START,
   YEAR_END,
   SERVER,
+  EMAIL,
 } from './utils/constant';
 import { queryParse, axiosJSON, timeout } from './utils/helper';
 import Octokit from '@octokit/rest';
@@ -152,6 +153,7 @@ class App extends Component {
       username: localStorage.getItem(USERNAME),
       avatar: localStorage.getItem(AVATAR),
       token: localStorage.getItem(ACCESS_TOKEN),
+      email: localStorage.getItem(EMAIL),
       info: JSON.stringify(this.info),
       repo: JSON.stringify(this.repos),
     };
@@ -247,6 +249,7 @@ class App extends Component {
     }
     localStorage.setItem(USERNAME, userInfo.data.login);
     localStorage.setItem(AVATAR, userInfo.data.avatar_url);
+    localStorage.setItem(EMAIL, userInfo.data.email);
     this.setState({ status: '用户信息获取成功', fineshedRequest: this.state.fineshedRequest + 1 });
   };
 

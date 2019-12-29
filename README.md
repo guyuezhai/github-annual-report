@@ -8,7 +8,7 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 
 - **代码开源，只统计公开仓库，不会存在数据安全问题**
 - 由于实时分析的瓶颈在于网络请求，**默认每个repo只分析master分支**
-- 只统计用户 watch 的数据库
+- 统计用户个人和 watch 的代码仓库
   - 个人的 repo 会默认 watch
   - push 过代码的 repo 会默认 watch
 - 一个请求超过 15 秒将做超时失败处理

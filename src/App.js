@@ -48,8 +48,9 @@ class App extends Component {
       failedRequest: 0,
     };
     this.octokit = new Octokit();
-    this.repos = {};
+    this.repos = [];
     this.info = {};
+    this.existRepos = {};
 
     this.run();
   }
@@ -91,6 +92,7 @@ class App extends Component {
       await this.calc();
       console.log(this.repos);
       console.log(this.info);
+      console.log(this.existRepos);
       this.setState({ loading: false, firstPage: false });
     }
     // 存在username说明是要看某个人的
@@ -105,6 +107,7 @@ class App extends Component {
           await this.calc();
           console.log(this.repos);
           console.log(this.info);
+          console.log(this.existRepos);
           this.setState({ loading: false, firstPage: false });
         }
         // 不一致则无法获取数据
@@ -142,6 +145,9 @@ class App extends Component {
 
   // 获取用户信息和分析计算
   calc = async () => {
+    this.repos = [];
+    this.info = {};
+    this.existRepos = [];
     // 远程获取Issue Star repo commit信息
     await this.fetchInfo();
     this.setState({ status: '正在分析每个仓库...' });
@@ -262,10 +268,13 @@ class App extends Component {
     promiseArr.push(this.fetchStars());
     // 获取event数量
     promiseArr.push(this.fetchEvents());
+
+    /** 下面 2 种 repo 求并集**/
     // 获取watch的repo信息
     promiseArr.push(this.fetchWatchRepo());
     // 获取自己的repo信息
-    // promiseArr.push(this.fetchSelfRepo());
+    promiseArr.push(this.fetchSelfRepo());
+
     // 等待全部异步请求结束
     await Promise.all(promiseArr);
   };
@@ -320,7 +329,6 @@ class App extends Component {
   fetchWatchRepo = async () => {
     const promiseArr = [];
     // 分页，取出当前用户的满足条件的仓库
-    this.repos = [];
     let repos;
     let repoPage = 1;
     do {
@@ -339,7 +347,12 @@ class App extends Component {
           continue;
         }
         // 仓库创建时间小于2019年 且 仓库最新push时间大于2019年，则该仓库有可能存在2019年的提交记录
-        if (created_at.getTime() < YEAR_END.getTime() && pushed_at.getTime() > YEAR_START.getTime()) {
+        if (
+          created_at.getTime() < YEAR_END.getTime() &&
+          pushed_at.getTime() > YEAR_START.getTime() &&
+          this.existRepos[repo.name] === undefined
+        ) {
+          this.existRepos[repo.name] = true;
           // 不阻塞，继续下一个仓库，保存Promise
           promiseArr.push(this.fetchCommits(repo));
         }
@@ -352,47 +365,51 @@ class App extends Component {
     this.setState({ status: `仓库获取成功` });
   };
 
-  // //  获取仓库信息
-  // fetchSelfRepo = async () => {
-  //   const promiseArr = [];
-  //   // 分页，取出当前用户的满足条件的仓库
-  //   this.repos = [];
-  //   let repos;
-  //   let repoPage = 1;
-  //   let repoOver = false;
-  //   do {
-  //     this.setState({ status: '正在获取仓库', requestNums: this.state.requestNums + 1 });
-  //     repos = await timeout(this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: PER_PAGE, page: repoPage }));
-  //     if (!repos || repos.status !== STATUS.OK) {
-  //       this.setState({ failedRequest: this.state.failedRequest + 1 });
-  //       return;
-  //     }
-  //     // 遍历所有仓库
-  //     for (const repo of repos.data) {
-  //       const created_at = new Date(repo.created_at);
-  //       const pushed_at = new Date(repo.pushed_at);
-  //       // 仓库最新push时间小于2018年，因为最新push时间降序排列，所以后序仓库不需遍历
-  //       if (pushed_at.getTime() <= YEAR_START.getTime()) {
-  //         repoOver = true;
-  //         break;
-  //       }
-  //       // 仓库创建时间大于2019年，跳过遍历下一个仓库
-  //       if (created_at.getTime() >= YEAR_END.getTime()) {
-  //         continue;
-  //       }
-  //       // 仓库创建时间小于2019年 且 仓库最新push时间大于2018年，则该仓库有可能存在2018年的提交记录
-  //       if (created_at.getTime() < YEAR_END.getTime() && pushed_at.getTime() > YEAR_START.getTime()) {
-  //         // 不阻塞，继续下一个仓库，保存Promise
-  //         promiseArr.push(this.fetchCommits(repo));
-  //       }
-  //     }
-  //     this.setState({ status: `第${repoPage}页仓库获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
-  //     repoPage++;
-  //   } while (repos.data.length === PER_PAGE && !repoOver);
-  //   // 等待全部异步请求结束
-  //   await Promise.all(promiseArr);
-  //   this.setState({ status: `仓库获取成功` });
-  // };
+  //  获取仓库信息
+  fetchSelfRepo = async () => {
+    const promiseArr = [];
+    // 分页，取出当前用户的满足条件的仓库
+    let repos;
+    let repoPage = 1;
+    let repoOver = false;
+    do {
+      this.setState({ status: '正在获取仓库', requestNums: this.state.requestNums + 1 });
+      repos = await timeout(this.octokit.repos.list({ visibility: 'all', sort: 'pushed', per_page: PER_PAGE, page: repoPage }));
+      if (!repos || repos.status !== STATUS.OK) {
+        this.setState({ failedRequest: this.state.failedRequest + 1 });
+        return;
+      }
+      // 遍历所有仓库
+      for (const repo of repos.data) {
+        const created_at = new Date(repo.created_at);
+        const pushed_at = new Date(repo.pushed_at);
+        // 仓库最新push时间小于2019年，因为最新push时间降序排列，所以后序仓库不需遍历
+        if (pushed_at.getTime() <= YEAR_START.getTime()) {
+          repoOver = true;
+          break;
+        }
+        // 仓库创建时间大于2020年，跳过遍历下一个仓库
+        if (created_at.getTime() >= YEAR_END.getTime()) {
+          continue;
+        }
+        // 仓库创建时间小于2020年 且 仓库最新push时间大于2019年，则该仓库有可能存在2018年的提交记录
+        if (
+          created_at.getTime() < YEAR_END.getTime() &&
+          pushed_at.getTime() > YEAR_START.getTime() &&
+          this.existRepos[repo.name] === undefined
+        ) {
+          this.existRepos[repo.name] = true;
+          // 不阻塞，继续下一个仓库，保存Promise
+          promiseArr.push(this.fetchCommits(repo));
+        }
+      }
+      this.setState({ status: `第${repoPage}页仓库获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
+      repoPage++;
+    } while (repos.data.length === PER_PAGE && !repoOver);
+    // 等待全部异步请求结束
+    await Promise.all(promiseArr);
+    this.setState({ status: `仓库获取成功` });
+  };
 
   // 获取issue数量
   fetchIssues = async () => {

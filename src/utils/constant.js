@@ -7,6 +7,7 @@ export const ACCESS_TOKEN = 'ACCESS_TOKEN';
 export const USERNAME = 'USERNAME';
 export const AVATAR = 'AVATAR';
 export const INFO = 'INFO';
+export const TOKEN = 'TOKEN';
 export const PROXY = 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token';
 export const SERVER = 'https://githubreport-api.mdnice.com';
 export const STATUS = {

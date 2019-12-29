@@ -97,6 +97,7 @@ class App extends Component {
     }
     // 存在username说明是要看某个人的
     if (query.username) {
+      this.setState({ status: '请求用户数据', requestNums: this.state.requestNums + 1 });
       const isExist = await this.getInfo(query.username);
       // 如果服务器上不存在数据
       if (!isExist) {
@@ -163,7 +164,7 @@ class App extends Component {
       info: JSON.stringify(this.info),
       repo: JSON.stringify(this.repos),
     };
-    this.addInfo(req);
+    await this.addInfo(req);
     this.setState({ status: '报告生成完毕！' });
   };
 
@@ -461,16 +462,10 @@ class App extends Component {
 
   // 获取提交记录
   fetchCommits = async repo => {
-    const currentRepo = {
-      repo: repo.name,
-      owner: repo.owner.login,
-      language: repo.language,
-      commitTime: [],
-      commitSha: [],
-      addLines: 0,
-      deleteLines: 0,
-      totalLines: 0,
-    };
+    const statsRepo = await this.fetchStats(repo);
+    if (!statsRepo) {
+      return;
+    }
     let commits;
     let commitPage = 1;
     let commitOver = false;
@@ -506,36 +501,73 @@ class App extends Component {
         // 提交人和当前用户一致 且 提交时间在2019——2020年之间，则放入提交时间
         if (
           (commit.committer && commit.committer.login === localStorage.getItem(USERNAME)) ||
-          (commit.commit.committer && commit.commit.committer.name === localStorage.getItem(USERNAME))
+          (commit.author && commit.author.login === localStorage.getItem(USERNAME)) ||
+          (commit.commit.committer && commit.commit.committer.name === localStorage.getItem(USERNAME)) ||
+          (commit.commit.author && commit.commit.author.name === localStorage.getItem(USERNAME))
         ) {
-          currentRepo.commitTime.push(commit.commit.committer.date);
-          currentRepo.commitSha.push(commit.sha);
-          // 获取单个commit信息
-          await this.fetchSingleCommit(currentRepo, repo.name, repo.owner.login, commit.sha);
+          if(commit.commit.committer && commit.commit.committer.date) {
+            console.log(commit)
+            console.log(statsRepo)
+            statsRepo.commitTime.push(commit.commit.committer.date);
+          } else if(commit.commit.author && commit.commit.author.date) {
+            statsRepo.commitTime.push(commit.commit.author.date);
+          }
+          statsRepo.commitSha.push(commit.sha);
         }
       }
       this.setState({ status: `${repo.name}的第${commitPage}页Commit获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
       commitPage++;
     } while (commits.data.length === PER_PAGE && !commitOver);
-    // 2019年存在提交记录则将该仓库加入
-    if (currentRepo.commitTime.length > 0) {
-      this.repos.push(currentRepo);
-    }
     this.setState({ status: `${repo.name}的Commit获取成功` });
   };
 
-  // 获取单个提交记录
-  fetchSingleCommit = async (currentRepo, repo, owner, sha) => {
-    this.setState({ requestNums: this.state.requestNums + 1 });
-    const commit = await timeout(this.octokit.repos.getCommit({ owner, repo, sha }));
-    if (!commit || commit.status !== STATUS.OK) {
+  fetchStats = async repo => {
+    this.setState({ status: '正在获取统计信息', requestNums: this.state.requestNums + 1 });
+    const stats = await timeout(
+      this.octokit.repos.getContributorsStats({
+        owner: repo.owner.login,
+        repo: repo.name,
+      })
+    );
+    this.setState({ status: `${repo.name}的统计获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
+
+    if (!stats || stats.status !== STATUS.OK) {
       this.setState({ failedRequest: this.state.failedRequest + 1 });
       return;
     }
-    currentRepo.addLines += commit.data.stats.additions;
-    currentRepo.deleteLines += commit.data.stats.deletions;
-    currentRepo.totalLines += commit.data.stats.additions + commit.data.stats.deletions;
-    this.setState({ status: `${repo}的提交${commit.data.sha.substr(0, 6)}获取成功`, fineshedRequest: this.state.fineshedRequest + 1 });
+    const detail = stats.data.filter(item => item.author.login === localStorage.getItem(USERNAME))[0];
+    if (detail === undefined) {
+      return null;
+    }
+    // 总提交数量，不仅仅是今年的
+    const { total, weeks } = detail;
+    if (total > 0) {
+      // 根据时间戳过滤今年的提交
+      const dateTime = new Date(YEAR_START).getTime();
+      const timestamp = Math.floor(dateTime / 1000);
+      const weeksThisYear = weeks.filter(week => week.w > timestamp);
+      if(weeksThisYear === undefined) {
+        return null;
+      }
+      const statsRepo = {
+        repo: repo.name,
+        owner: repo.owner.login,
+        language: repo.language,
+        commitTime: [],
+        commitSha: [],
+        addLines: 0,
+        deleteLines: 0,
+        totalLines: 0,
+      };
+      statsRepo.addLines = weeks.map(week => week.a).reduce((pre, cur) => pre + cur);
+      statsRepo.deleteLines = weeks.map(week => week.d).reduce((pre, cur) => pre + cur);
+      statsRepo.totalLines = statsRepo.addLines + statsRepo.deleteLines;
+
+      // 重要，放入数据，2019年存在提交记录则将该仓库加入
+      this.repos.push(statsRepo);
+      return statsRepo;
+    }
+    return null;
   };
 
   fetchToken = async code => {

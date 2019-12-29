@@ -11,7 +11,7 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 - 统计用户个人和 watch 的代码仓库
   - 个人的 repo 会默认 watch
   - push 过代码的 repo 会默认 watch
-- 一个请求超过 15 秒将做超时失败处理
+- 一个请求超过 30 秒将做超时失败处理
 
 ## 主要依赖
 

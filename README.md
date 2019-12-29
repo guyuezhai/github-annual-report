@@ -4,7 +4,7 @@ GitHub annual report 是利用 OAuth 认证，通过 GitHub API 调用，获取�
 
 |  报告码                                                                                              | 关注码                                                                                   |
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| <img width="250px" src="https://github.com/guanpengchn/Figure/raw/master/github-report-code.png"/> | <img width="250px" src="https://my-wechat.mdnice.com/wechat/wechat_gongzhognhao_20191014013348.gif"/> |
+| <img width="200px" src="https://imgkr.cn-bj.ufileos.com/9f4ee62b-220b-445f-84e6-28fb7d55b3ac.png"/> | <img width="250px" src="https://my-wechat.mdnice.com/wechat/wechat_gongzhognhao_20191014013348.gif"/> |
 
 ## 说明
 

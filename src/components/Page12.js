@@ -123,7 +123,7 @@ class Page1 extends Component {
               GitHub 地址，欢迎 Star
             </a>
             <p style={styles.fadeInUp1s} className="mb5" />
-            <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
+            <img className="mb20" alt="图片未加载成功" src="//githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
             <a
               style={styles.fadeInUp1s}
               className="mb20"

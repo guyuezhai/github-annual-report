@@ -14,11 +14,11 @@ export const SERVER = 'https://githubreport-api.mdnice.com';
 export const STATUS = {
   OK: 200,
 };
-export const BG1 = 'http://githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg';
-export const BG2 = 'http://githubreport.oss-cn-beijing.aliyuncs.com/bg2.jpg';
-export const WECHAT = 'http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg';
-export const QRCODE = 'https://githubreport.oss-cn-beijing.aliyuncs.com/qrcode.png';
-export const MUSIC = 'http://githubreport.oss-cn-beijing.aliyuncs.com/music.mp3';
+export const BG1 = '//githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg';
+export const BG2 = '//githubreport.oss-cn-beijing.aliyuncs.com/bg2.jpg';
+export const WECHAT = '//githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg';
+export const QRCODE = '//githubreport.oss-cn-beijing.aliyuncs.com/qrcode.png';
+export const MUSIC = '//githubreport.oss-cn-beijing.aliyuncs.com/music.mp3';
 export const TIMEOUT = 30000;
 export const TIPS1_TIME = 5000;
 export const TIPS2_TIME = 21000;

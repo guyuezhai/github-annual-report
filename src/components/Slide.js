@@ -17,6 +17,8 @@ import Page10 from './Page10';
 import Page11 from './Page11';
 import Page12 from './Page12';
 
+import {QRCODE,BG1,BG2,MUSIC} from "../utils/constant"
+
 class Slide extends Component {
   constructor(props) {
     super(props);
@@ -55,11 +57,11 @@ class Slide extends Component {
     };
     const styles = {
       section1: {
-        backgroundImage: `url(http://githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg)`,
+        backgroundImage: `url(${BG1})`,
         backgroundSize: '100%',
       },
       section: {
-        backgroundImage: `url(http://githubreport.oss-cn-beijing.aliyuncs.com/bg2.jpg)`,
+        backgroundImage: `url(${BG2})`,
         backgroundSize: '100%',
       },
       fadeInUp1s: {
@@ -87,10 +89,10 @@ class Slide extends Component {
       <div className="Slide">
         <StyleRoot>
           {this.state.page === 1 ? null : (
-            <img className="qrcode" alt="图片未加载成功" src="https://githubreport.oss-cn-beijing.aliyuncs.com/qrcode.png" />
+            <img className="qrcode" alt="图片未加载成功" src={QRCODE} />
           )}
           <audio id="audio_player" autoPlay="autoplay">
-            <source id="src_mp3" type="audio/mp3" src="http://githubreport.oss-cn-beijing.aliyuncs.com/music.mp3" />
+            <source id="src_mp3" type="audio/mp3" src={MUSIC} />
           </audio>
           <Swiper {...params}>
             <section style={styles.section1}>

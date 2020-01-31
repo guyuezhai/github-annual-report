@@ -634,7 +634,7 @@ class App extends Component {
     let firstPage = null;
     const styles = {
       firstPage: {
-        backgroundImage: `url(http://githubreport.oss-cn-beijing.aliyuncs.com/bg1.jpg)`,
+        backgroundImage: `url(${BG1})`,
         backgroundSize: '100%',
       },
     };

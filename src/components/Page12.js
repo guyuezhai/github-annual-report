@@ -5,7 +5,7 @@ import './Slide.css';
 import Button from 'antd/lib/button';
 import Alert from 'antd/lib/alert';
 import Modal from 'antd/lib/modal';
-import { OWNER, REPO, USERNAME } from '../utils/constant';
+import { OWNER, REPO, USERNAME, WECHAT } from '../utils/constant';
 import { queryParse } from '../utils/helper';
 
 class Page1 extends Component {
@@ -123,7 +123,7 @@ class Page1 extends Component {
               GitHub 地址，欢迎 Star
             </a>
             <p style={styles.fadeInUp1s} className="mb5" />
-            <img className="mb20" alt="图片未加载成功" src="http://githubreport.oss-cn-beijing.aliyuncs.com/wechat.jpg" />
+            <img className="mb20" alt="图片未加载成功" src={WECHAT} />
             <a
               style={styles.fadeInUp1s}
               className="mb20"

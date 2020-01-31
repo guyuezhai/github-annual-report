@@ -559,8 +559,8 @@ class App extends Component {
         deleteLines: 0,
         totalLines: 0,
       };
-      statsRepo.addLines = weeks.map(week => week.a).reduce((pre, cur) => pre + cur);
-      statsRepo.deleteLines = weeks.map(week => week.d).reduce((pre, cur) => pre + cur);
+      statsRepo.addLines = weeksThisYear.map(week => week.a).reduce((pre, cur) => pre + cur);
+      statsRepo.deleteLines = weeksThisYear.map(week => week.d).reduce((pre, cur) => pre + cur);
       statsRepo.totalLines = statsRepo.addLines + statsRepo.deleteLines;
 
       // 重要，放入数据，2019年存在提交记录则将该仓库加入

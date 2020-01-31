@@ -1,10 +1,19 @@
 {
+<<<<<<< HEAD
   "main.css": "/static/css/main.31f18c06.chunk.css",
   "main.js": "/static/js/main.efe4e157.chunk.js",
   "main.js.map": "/static/js/main.efe4e157.chunk.js.map",
   "static/css/1.bbc83574.chunk.css": "/static/css/1.bbc83574.chunk.css",
   "static/js/1.1c01525f.chunk.js": "/static/js/1.1c01525f.chunk.js",
   "static/js/1.1c01525f.chunk.js.map": "/static/js/1.1c01525f.chunk.js.map",
+=======
+  "main.css": "/static/css/main.2a40536c.chunk.css",
+  "main.js": "/static/js/main.b74454d9.chunk.js",
+  "main.js.map": "/static/js/main.b74454d9.chunk.js.map",
+  "static/css/1.1b3d464d.chunk.css": "/static/css/1.1b3d464d.chunk.css",
+  "static/js/1.b8e7b3c6.chunk.js": "/static/js/1.b8e7b3c6.chunk.js",
+  "static/js/1.b8e7b3c6.chunk.js.map": "/static/js/1.b8e7b3c6.chunk.js.map",
+>>>>>>> bbdca44849b0fd39eef3bdb0581e047116c3b427
   "runtime~main.js": "/static/js/runtime~main.229c360f.js",
   "runtime~main.js.map": "/static/js/runtime~main.229c360f.js.map",
   "static/media/githubWhite.a05482ff.svg": "/static/media/githubWhite.a05482ff.svg",
@@ -19,9 +28,16 @@
   "static/media/prize.4bdf00c2.svg": "/static/media/prize.4bdf00c2.svg",
   "static/media/thanks.910bd05c.svg": "/static/media/thanks.910bd05c.svg",
   "static/media/github.0a0da283.svg": "/static/media/github.0a0da283.svg",
+<<<<<<< HEAD
   "static/css/1.bbc83574.chunk.css.map": "/static/css/1.bbc83574.chunk.css.map",
   "static/css/main.31f18c06.chunk.css.map": "/static/css/main.31f18c06.chunk.css.map",
   "index.html": "/index.html",
   "precache-manifest.d6a2b96bc15b22d9c3f65c6251b92372.js": "/precache-manifest.d6a2b96bc15b22d9c3f65c6251b92372.js",
+=======
+  "static/css/1.1b3d464d.chunk.css.map": "/static/css/1.1b3d464d.chunk.css.map",
+  "static/css/main.2a40536c.chunk.css.map": "/static/css/main.2a40536c.chunk.css.map",
+  "index.html": "/index.html",
+  "precache-manifest.3bcc879adb9fc961fb7d53ecfa9b9a59.js": "/precache-manifest.3bcc879adb9fc961fb7d53ecfa9b9a59.js",
+>>>>>>> bbdca44849b0fd39eef3bdb0581e047116c3b427
   "service-worker.js": "/service-worker.js"
 }
